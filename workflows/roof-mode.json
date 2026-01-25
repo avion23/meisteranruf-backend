@@ -27,22 +27,39 @@
     },
     {
       "parameters": {
-        "url": "=https://sheets.googleapis.com/v4/spreadsheets/{{$env.GOOGLE_SHEET_ID}}/values/Sheet1",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "method": "GET",
-        "options": {}
+        "operation": "getAll",
+        "sheetId": {
+          "__rl": true,
+          "mode": "url"
+        },
+        "range": "={{ $env.GOOGLE_SHEETS_RANGE }}"
       },
       "id": "google-sheets-lookup",
-      "name": "HTTP Request - Google Sheets Lookup",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [650, 300]
+      "name": "Google Sheets - Lookup Customer",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [650, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "googleSheetsOAuth2Api",
+          "name": "Google Sheets OAuth2"
+        }
+      }
     },
     {
       "parameters": {
         "respondWith": "xml",
-        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zurück.</Say>\n  <Pause length=\"1\"/>\n</Response>"
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zurück.</Say>\n  <Pause length=\"1\"/>\n</Response>",
+        "responseHeaders": {
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "text/xml"
+              }
+            ]
+          }
+        }
       },
       "id": "twiml-response",
       "name": "Twilio - Respond to Webhook (TwiML)",
@@ -119,6 +136,31 @@
     },
     {
       "parameters": {
+        "operation": "append",
+        "sheetId": {
+          "__rl": true,
+          "mode": "url"
+        },
+        "range": "Call_Log!A:C",
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        },
+        "options": {}
+      },
+      "id": "google-sheets-log",
+      "name": "Google Sheets - Log Call",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1350, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "googleSheetsOAuth2Api",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
@@ -129,7 +171,7 @@
       "name": "HTTP Request - Telegram Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1450, 400]
+      "position": [1550, 400]
     }
   ],
   "connections": {
@@ -207,7 +249,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request - Telegram Alert",
+            "node": "Google Sheets - Log Call",
             "type": "main",
             "index": 0
           }
@@ -215,6 +257,17 @@
       ]
     },
     "Twilio - Send WhatsApp (Fallback)": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Log Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Log Call": {
       "main": [
         [
           {

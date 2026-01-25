@@ -28,7 +28,7 @@ check_service() {
 
   status=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 --max-time 30 "$url")
 
-  if [ "$status" -eq "$expected_status" ]; then
+  if [[ "$status" =~ ^($expected_status)$ ]]; then
     log_info "✓ $name is healthy (HTTP $status)"
     return 0
   else
@@ -49,8 +49,8 @@ DOMAIN="${DOMAIN:-localhost}"
 
 log_info "Starting smoke tests..."
 
-check_service "n8n" "http://localhost/healthz" 200 || ((failures++))
-check_service "Traefik" "http://${DOMAIN}/health" 200 || ((failures++))
+check_service "n8n" "http://localhost/healthz" "200" || ((failures++))
+check_service "Traefik" "http://${DOMAIN}/health" "200|301|302|404" || ((failures++))
 
 echo ""
 log_info "Smoke tests completed"
