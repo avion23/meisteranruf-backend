@@ -7,14 +7,6 @@ if ! command -v docker &> /dev/null; then
     apt update && apt install -y docker.io
 fi
 
-if [ ! -f /swapfile ]; then
-    fallocate -l 4G /swapfile
-    chmod 600 /swapfile
-    mkswap /swapfile
-    swapon /swapfile
-    echo '/swapfile none swap sw 0 0' >> /etc/fstab
-fi
-
 if [ ! -f .env ]; then
     cp .env.example .env
 fi
