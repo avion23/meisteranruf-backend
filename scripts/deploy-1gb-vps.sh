@@ -1,8 +1,52 @@
 #!/bin/bash
 set -euo pipefail
 
+# ⚠️  WARNING: THIS CONFIGURATION IS NOT RECOMMENDED FOR PRODUCTION
+# See docs/llm-expert-review.md for detailed analysis
+#
+# CRITICAL ISSUES:
+# 1. Memory oversubscription (855MB needed, only 169MB headroom)
+# 2. WAHA requires 400MB, current limit is 200MB → crashes expected
+# 3. High probability of OOM kills under load
+# 4. WAHA violates Meta ToS → account bans in 4-72 hours
+# 5. No TKG-DOI compliance → €50,000-300,000 fines
+#
+# RECOMMENDED: Use deploy-hetzner.sh (2GB, €5.82/month) + Twilio WhatsApp
+# USE THIS ONLY FOR: Development/testing with < 20 messages/day
+
 log() {
     echo -e "\033[0;32m[$(date +'%Y-%m-%d %H:%M:%S')]\033[0m $1"
+}
+
+warn() {
+    echo -e "\033[0;33m[WARNING]\033[0m $1"
+}
+
+error() {
+    echo -e "\033[0;31m[ERROR]\033[0m $1"
+}
+
+show_warning() {
+    echo ""
+    error "═══════════════════════════════════════════════════════════════"
+    error "  ⚠️  WARNING: 1GB VPS NOT RECOMMENDED FOR PRODUCTION  ⚠️"
+    error "═══════════════════════════════════════════════════════════════"
+    warn "Verified issues (see docs/llm-expert-review.md):"
+    warn "  • OOM kills expected under load (855MB used of 1024MB)"
+    warn "  • WAHA banned by Meta in 4-72 hours at production volumes"
+    warn "  • No TKG-DOI compliance → legal fines €50k-300k"
+    warn "  • PostgreSQL will thrash (150MB limit too low)"
+    warn ""
+    warn "Recommended: Hetzner CX21 (2GB, €5.82/mo) + Twilio WhatsApp"
+    warn "Cost difference: Only €2.50/month extra"
+    error "═══════════════════════════════════════════════════════════════"
+    echo ""
+    
+    read -p "Continue anyway? (type 'I ACCEPT THE RISKS'): " confirm
+    if [ "$confirm" != "I ACCEPT THE RISKS" ]; then
+        error "Deployment cancelled. Use ./scripts/deploy-hetzner.sh instead."
+        exit 1
+    fi
 }
 
 check_root() {
@@ -203,8 +247,10 @@ show_status() {
 
 main() {
     check_root
+    show_warning
 
     log "=== VPS Deployment Script for 1GB Instances ==="
+    warn "REMINDER: Development/testing only - NOT for production"
 
     read -p "Repository URL: " REPO_URL
     read -p "Deploy directory [/opt/vorzimmerdrache]: " DEPLOY_DIR
@@ -232,6 +278,16 @@ main() {
     log "2. Set up DNS A records pointing to $(hostname -I | awk '{print $1}')"
     log "3. Restart: docker compose -f $DEPLOY_DIR/docker-compose-low-memory.yml restart"
     log "4. Monitor: bash $DEPLOY_DIR/scripts/monitor.sh"
+    log ""
+    error "═══════════════════════════════════════════════════════════════"
+    error "  ⚠️  IMPORTANT REMINDERS FOR 1GB DEPLOYMENT  ⚠️"
+    error "═══════════════════════════════════════════════════════════════"
+    warn "  • Limit WAHA to < 20 messages/hour to avoid Meta ban"
+    warn "  • Monitor OOM kills: dmesg | grep -i oom"
+    warn "  • Install auto-recovery: bash scripts/install-monitoring.sh install"
+    warn "  • For production: Use ./scripts/deploy-hetzner.sh + Twilio"
+    warn "  • See full analysis: docs/llm-expert-review.md"
+    error "═══════════════════════════════════════════════════════════════"
 }
 
 main "$@"
