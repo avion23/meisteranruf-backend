@@ -2,13 +2,12 @@ version: "3.10"
 
 services:
   traefik:
-    image: traefik:v3.2
+    image: traefik:v2.11
     restart: always
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
