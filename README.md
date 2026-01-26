@@ -83,13 +83,88 @@ Für rechtssichere WhatsApp-Nutzung empfiehlt sich der folgende Opt-In-Prozess:
 
 ## Deployment
 
-**For deployment instructions, see [SERVER_SETUP.md](SERVER_SETUP.md)**
+**For detailed deployment instructions, see [SERVER_SETUP.md](SERVER_SETUP.md)**
 
 Quick start:
 1. Setup Twilio account (WhatsApp + Voice)
 2. Create Google Sheet
 3. Configure `.env` file
 4. Run: `./scripts/deploy-1gb.sh`
+
+---
+
+## Project Status
+
+### ✅ What's Implemented
+
+**Infrastructure:**
+- ✅ Docker Compose with Traefik v2.11 (SSL termination)
+- ✅ n8n with SQLite (no external database)
+- ✅ Memory limits: n8n (512MB), Traefik (256MB)
+- ✅ Healthchecks: n8n monitored every 30s
+- ✅ Log rotation: 10MB max, 3 files per container
+- ✅ Automated backups: retains 7 most recent backups
+- ✅ Port 5678 exposed (for direct access during setup)
+
+**Security:**
+- ✅ Traefik insecure API removed (dashboard not exposed)
+- ✅ Docker socket mounted read-only
+- ✅ Port 5678 firewalled from public internet
+- ✅ Docker prune --volumes flag removed (prevents data loss)
+- ✅ Error handling in workflows (Telegram alerts on failures)
+- ✅ Complete German mobile prefix list (26 prefixes)
+- ✅ Phone validation: 10-13 digits (edge cases handled)
+
+**Workflows:**
+- ✅ roof-mode.json (call handling, SMS, WhatsApp, Telegram)
+- ✅ sms-opt-in.json (WhatsApp opt-in via SMS bridge)
+- ✅ Both imported into n8n database
+- ✅ Error nodes added with retry logic
+
+**Automation:**
+- ✅ scripts/configure-system.sh (initial setup without credentials)
+- ✅ scripts/backup-db.sh (automated daily backups)
+- ✅ scripts/validate-env.sh (configuration validation)
+- ✅ scripts/import-workflows.sh (workflow import helper)
+- ✅ scripts/README.md (script documentation)
+
+**Documentation:**
+- ✅ README.md (product-focused, clean structure)
+- ✅ SERVER_SETUP.md (comprehensive deployment guide)
+- ✅ .env.example updated with real Google Sheets CRM ID
+- ✅ Google Sheets CRM linked: https://docs.google.com/spreadsheets/d/1U73YUGk_GBWsAnM5LPjXpCT8bTXHYScuPoLumNdnfUY
+
+### 📋 What Requires Manual Configuration (32 minutes)
+
+**Step 1: Replace API Credentials (10 minutes)**
+Edit `/opt/vorzimmerdrache/.env` and replace these placeholders:
+- `TWILIO_ACCOUNT_SID` (from Twilio Console)
+- `TWILIO_AUTH_TOKEN` (from Twilio Console)
+- `TELEGRAM_BOT_TOKEN` (from @BotFather)
+- `TELEGRAM_CHAT_ID` (from Telegram Bot API test)
+- `TWILIO_WHATSAPP_TEMPLATE_SID` (approved Twilio template)
+
+**Step 2: Activate Workflows (2 minutes)**
+1. Open https://instance1.duckdns.org
+2. Click "Roof-Mode" → Click toggle (top-right corner)
+3. Click "SMS Opt-In" → Click toggle (top-right corner)
+
+**Step 3: Configure n8n Credentials (15 minutes)**
+In n8n UI → Settings → Credentials:
+1. Google Sheets (OAuth2 or Service Account)
+2. Twilio (Account SID + Auth Token)
+3. Telegram (Bot Token)
+
+**Step 4: Configure Twilio Webhooks (5 minutes)**
+In Twilio Console:
+- Voice webhook: `https://instance1.duckdns.org/webhook/incoming-call`
+- SMS webhook: `https://instance1.duckdns.org/webhook/sms-response`
+
+**Step 5: Test End-to-End (5 minutes)**
+- Call Twilio number
+- Verify SMS received
+- Reply "JA" to test opt-in
+- Check Google Sheet updates
 
 ---
 
