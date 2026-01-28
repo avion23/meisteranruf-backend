@@ -18,22 +18,22 @@ fi
 
 docker compose -f "$DOCKER_COMPOSE_FILE" pull
 docker compose -f "$DOCKER_COMPOSE_FILE" down 2>/dev/null || true
-docker system prune -f
 docker compose -f "$DOCKER_COMPOSE_FILE" up -d
 
 retries=0
 max_retries=12
 while [ $retries -lt $max_retries ]; do
-    if curl -s -f http://localhost:5678/healthz > /dev/null 2>&1; then
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5678/healthz 2>&1 || echo "000")
+    if [ "$HTTP_CODE" = "200" ]; then
         break
     fi
     retries=$((retries + 1))
-    echo "Waiting for n8n to be healthy... ($retries/$max_retries)"
+    echo "Waiting for n8n to be healthy... ($retries/$max_retries) [HTTP: $HTTP_CODE]"
     sleep 5
 done
 
 if [ $retries -eq $max_retries ]; then
-    echo "ERROR: n8n health check failed after 60 seconds"
+    echo "ERROR: n8n health check failed after 60 seconds (last HTTP code: $HTTP_CODE)"
     exit 1
 fi
 

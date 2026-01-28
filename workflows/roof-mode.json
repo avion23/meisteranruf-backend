@@ -12,8 +12,83 @@
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300],
+      "position": [
+        250,
+        300
+      ],
       "webhookId": "roof-mode-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst authToken = $env.TWILIO_AUTH_TOKEN;\nconst headers = $input.first().json.headers || {};\nconst signature = headers['x-twilio-signature'] || headers['X-Twilio-Signature'];\nconst body = $input.first().json.body || {};\n\nconst params = new URLSearchParams();\nfor (const [key, value] of Object.entries(body)) {\n  params.append(key, value);\n}\nconst payload = params.toString();\nconst webhookUrl = `https://${$env.DOMAIN}/webhook/incoming-call`;\nconst expected = crypto.createHmac('sha1', authToken)\n  .update(webhookUrl + payload)\n  .digest('base64');\n\nif (signature !== expected) {\n  return [{ json: { error: 'Invalid signature', statusCode: 403 } }];\n}\nreturn [{ json: body, valid: true }];"
+      },
+      "id": "validate-signature",
+      "name": "Code - Validate Twilio Signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        150,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-signature-valid",
+      "name": "IF - Signature Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        250,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"error\": \"Forbidden\", \"message\": \"Invalid signature\"}",
+        "options": {
+          "responseCode": 403
+        },
+        "responseHeaders": {
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-forbidden",
+      "name": "Respond - Forbidden",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        400
+      ]
     },
     {
       "parameters": {
@@ -23,7 +98,10 @@
       "name": "Code - Normalize Phone",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [450, 300]
+      "position": [
+        400,
+        350
+      ]
     },
     {
       "parameters": {
@@ -38,7 +116,10 @@
       "name": "Google Sheets - Lookup Customer",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [650, 300],
+      "position": [
+        700,
+        350
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "googleSheetsOAuth2Api",
@@ -49,7 +130,7 @@
     {
       "parameters": {
         "respondWith": "xml",
-        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zurück.</Say>\n  <Pause length=\"1\"/>\n</Response>",
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zur\u00fcck.</Say>\n  <Pause length=\"1\"/>\n</Response>",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -65,7 +146,10 @@
       "name": "Twilio - Respond to Webhook (TwiML)",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [850, 200]
+      "position": [
+        900,
+        250
+      ]
     },
     {
       "parameters": {
@@ -75,7 +159,10 @@
       "name": "Code - Check Customer Known",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [850, 400]
+      "position": [
+        900,
+        450
+      ]
     },
     {
       "parameters": {
@@ -104,35 +191,52 @@
       "name": "IF - Known Customer",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1050, 400]
+      "position": [
+        1100,
+        450
+      ]
     },
     {
       "parameters": {
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "body": "Hi, wir haben Ihren Anruf verpasst. Möchten Sie Updates per WhatsApp? Antworten Sie mit JA.",
-        "options": {}
+        "body": "Hi, wir haben Ihren Anruf verpasst. M\u00f6chten Sie Updates per WhatsApp? Antworten Sie mit JA.",
+        "options": {
+          "maxTries": 3,
+          "waitBetweenTries": 2000,
+          "continueOnFail": false
+        }
       },
       "id": "twilio-sms-known",
       "name": "Twilio - Send SMS",
       "type": "n8n-nodes-base.twilio",
       "typeVersion": 1,
-      "position": [1250, 300]
+      "position": [
+        1300,
+        350
+      ]
     },
     {
       "parameters": {
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $item(0).$json.phone }}",
-        "body": "Hi, wir haben Ihren Anruf verpasst. Möchten Sie Updates per WhatsApp? Antworten Sie mit JA.",
-        "options": {}
+        "body": "Hi, wir haben Ihren Anruf verpasst. M\u00f6chten Sie Updates per WhatsApp? Antworten Sie mit JA.",
+        "options": {
+          "maxTries": 3,
+          "waitBetweenTries": 2000,
+          "continueOnFail": false
+        }
       },
       "id": "twilio-sms-fallback",
       "name": "Twilio - Send SMS (Fallback)",
       "type": "n8n-nodes-base.twilio",
       "typeVersion": 1,
-      "position": [1250, 500]
+      "position": [
+        1300,
+        550
+      ]
     },
     {
       "parameters": {
@@ -151,7 +255,10 @@
       "name": "Google Sheets - Log Call",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [1350, 400],
+      "position": [
+        1400,
+        450
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "googleSheetsOAuth2Api",
@@ -171,63 +278,78 @@
       "name": "HTTP Request - Telegram Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1550, 400]
+      "position": [
+        1600,
+        450
+      ]
     },
     {
       "parameters": {
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Google Sheets Lookup\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Google Sheets Lookup\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {}
       },
       "id": "error-sheets-lookup",
       "name": "Error: Sheets Failed",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [650, 500]
+      "position": [
+        700,
+        550
+      ]
     },
     {
       "parameters": {
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Twilio SMS Known\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Twilio SMS Known\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {}
       },
       "id": "error-sms-known",
       "name": "Error: SMS Failed (Known)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1250, 400]
+      "position": [
+        1300,
+        450
+      ]
     },
     {
       "parameters": {
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Twilio SMS Fallback\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Twilio SMS Fallback\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {}
       },
       "id": "error-sms-fallback",
       "name": "Error: SMS Failed (Fallback)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1250, 600]
+      "position": [
+        1300,
+        650
+      ]
     },
     {
       "parameters": {
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Google Sheets Log Call\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Google Sheets Log Call\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {}
       },
       "id": "error-log-call",
       "name": "Error: Log Failed",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1350, 500]
+      "position": [
+        1400,
+        550
+      ]
     }
   ],
   "connections": {
@@ -235,7 +357,36 @@
       "main": [
         [
           {
+            "node": "Code - Validate Twilio Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate Twilio Signature": {
+      "main": [
+        [
+          {
+            "node": "IF - Signature Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Signature Valid": {
+      "main": [
+        [
+          {
             "node": "Code - Normalize Phone",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Forbidden",
             "type": "main",
             "index": 0
           }

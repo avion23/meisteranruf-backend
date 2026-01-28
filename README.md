@@ -6,7 +6,7 @@ This is a 1GB VPS running:
 - n8n with SQLite (no external database)
 - Twilio API for WhatsApp + Voice (you pay per message)
 - Google Sheets API as CRM (you manage in Sheets)
-- Total container RAM: ~300MB
+- Total container RAM: ~512MB (384MB + 128MB)
 
 NO PostgreSQL, NO Redis, NO WAHA, NO Baserow, NO worker processes.
 

@@ -12,18 +12,96 @@
       "name": "Webhook Trigger",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [250, 300],
+      "position": [
+        250,
+        300
+      ],
       "webhookId": "sms-opt-in-webhook"
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || '';\nconst phone = $input.first().json.From || '';\nconst normalizedResponse = body.trim().toLowerCase();\nconst isValidResponse = normalizedResponse === 'ja';\nlet p = phone.replace(/[^0-9]/g, '');\nif (p.startsWith('0049')) {\n  p = '+49' + p.substring(4);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (p.startsWith('49') && p.length >= 12 && p.length <= 13) {\n  p = '+49' + p.substring(2);\n} else if (!p.startsWith('+')) {\n  p = '+49' + p;\n}\nreturn [{ json: { phone: p, response: body, isValidResponse } }];"
+        "jsCode": "const crypto = require('crypto');\nconst authToken = $env.TWILIO_AUTH_TOKEN;\nconst headers = $input.first().json.headers || {};\nconst signature = headers['x-twilio-signature'] || headers['X-Twilio-Signature'];\nconst body = $input.first().json.body || {};\n\nconst params = new URLSearchParams();\nfor (const [key, value] of Object.entries(body)) {\n  params.append(key, value);\n}\nconst payload = params.toString();\nconst webhookUrl = `https://${$env.DOMAIN}/webhook/sms-response`;\nconst expected = crypto.createHmac('sha1', authToken)\n  .update(webhookUrl + payload)\n  .digest('base64');\n\nif (signature !== expected) {\n  return [{ json: { error: 'Invalid signature', statusCode: 403 } }];\n}\nreturn [{ json: body, valid: true }];"
+      },
+      "id": "validate-signature",
+      "name": "Code - Validate Twilio Signature",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        150,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-signature-valid",
+      "name": "IF - Signature Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        250,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"error\": \"Forbidden\", \"message\": \"Invalid signature\"}",
+        "options": {
+          "responseCode": 403
+        },
+        "responseHeaders": {
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-forbidden",
+      "name": "Respond - Forbidden",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body.Body || '';\nconst phone = $input.first().json.body.From || '';\nconst normalizedResponse = body.trim().toLowerCase();\nconst isValidResponse = normalizedResponse === 'ja';\nlet p = phone.replace(/[^0-9]/g, '');\nif (p.startsWith('0049')) {\n  p = '+49' + p.substring(4);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (p.startsWith('49') && p.length >= 12 && p.length <= 13) {\n  p = '+49' + p.substring(2);\n} else if (!p.startsWith('+')) {\n  p = '+49' + p;\n}\nreturn [{ json: { phone: p, response: body, isValidResponse } }];"
       },
       "id": "parse-sms",
       "name": "Code - Parse SMS",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [450, 300]
+      "position": [
+        400,
+        350
+      ]
     },
     {
       "parameters": {
@@ -52,7 +130,10 @@
       "name": "IF - Valid Response (JA)",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [650, 300]
+      "position": [
+        700,
+        350
+      ]
     },
     {
       "parameters": {
@@ -68,13 +149,37 @@
       "name": "Google Sheets - Update Opt-In",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
-      "position": [850, 200],
+      "position": [
+        900,
+        250
+      ],
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "googleSheetsOAuth2Api",
           "name": "Google Sheets OAuth2"
         }
       }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $env.TWILIO_WHATSAPP_SENDER }}",
+        "to": "={{ $json.phone }}",
+        "body": "Danke! Hier ist der Link fur Ihren Termin: https://example.com/termin",
+        "options": {
+          "maxTries": 3,
+          "waitBetweenTries": 2000,
+          "continueOnFail": false
+        }
+      },
+      "id": "twilio-whatsapp-optin",
+      "name": "Twilio - Send WhatsApp",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1150,
+        200
+      ]
     },
     {
       "parameters": {
@@ -88,7 +193,10 @@
       "name": "HTTP Request - Telegram Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1050, 200]
+      "position": [
+        1100,
+        250
+      ]
     },
     {
       "parameters": {
@@ -109,12 +217,15 @@
       "name": "Respond - Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1250, 100]
+      "position": [
+        1300,
+        150
+      ]
     },
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "Vielen Dank für Ihre Rückmeldung.",
+        "responseBody": "Vielen Dank f\u00fcr Ihre R\u00fcckmeldung.",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -130,21 +241,27 @@
       "name": "Respond - Acknowledge",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [850, 400]
+      "position": [
+        900,
+        450
+      ]
     },
     {
       "parameters": {
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Google Sheets Update Opt-In\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Google Sheets Update Opt-In\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {}
       },
       "id": "error-update-optin",
       "name": "Error: Update Failed",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [850, 500]
+      "position": [
+        900,
+        550
+      ]
     },
     {
       "parameters": {
@@ -165,7 +282,10 @@
       "name": "Error: Telegram Swallow",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1250, 300]
+      "position": [
+        1300,
+        350
+      ]
     }
   ],
   "connections": {
@@ -173,7 +293,36 @@
       "main": [
         [
           {
+            "node": "Code - Validate Twilio Signature",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate Twilio Signature": {
+      "main": [
+        [
+          {
+            "node": "IF - Signature Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Signature Valid": {
+      "main": [
+        [
+          {
             "node": "Code - Parse SMS",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond - Forbidden",
             "type": "main",
             "index": 0
           }
@@ -211,13 +360,16 @@
     },
     "Google Sheets - Update Opt-In": {
       "main": [
-        [
-          {
-            "node": "HTTP Request - Telegram Alert",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        {
+          "node": "Twilio - Send WhatsApp",
+          "type": "main",
+          "index": 0
+        },
+        {
+          "node": "HTTP Request - Telegram Alert",
+          "type": "main",
+          "index": 0
+        }
       ],
       "error": [
         [
@@ -268,6 +420,17 @@
     },
     "Error: Telegram Swallow": {
       "main": []
+    },
+    "Twilio - Send WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Telegram Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "pinData": {},

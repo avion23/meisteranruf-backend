@@ -22,15 +22,15 @@ cp "$DB_PATH" "$DB_PATH.backup.$(date +%s)"
 echo "✅ Database backed up to $DB_PATH.backup.$(date +%s)"
 
 # Activate both workflows using Node.js (sqlite3 not available in container)
-docker exec vorzimmerdrache-n8n-1 node -e "const sqlite = require('sqlite3'); const db = new sqlite.Database('$DB_PATH'); const stmt = db.prepare('UPDATE workflow_entity SET active = 1, updated_at = datetime(\"now\") WHERE id IN (\\\"ZrxBxsUcGjzNMCjA\\\", \\\"uonpMKiEO0yEvhmo\\\")'); stmt.run(); stmt.finalize(); console.log('Workflows activated');"
+docker exec vorzimmerdrache-n8n-1 node -e "const sqlite = require('sqlite3'); const db = new sqlite.Database('$DB_PATH'); const stmt = db.prepare('UPDATE workflow_entity SET active = 1, updated_at = datetime(\"now\") WHERE name IN (\"Roof-Mode\", \"SMS Opt-In\")'); stmt.run(); stmt.finalize(); console.log('Workflows activated');"
 
 if [ $? -eq 0 ]; then
     echo ""
     echo "✅ Workflows activated successfully!"
     echo ""
     echo "Activated workflows:"
-    echo "  - Roof-Mode (ZrxBxsUcGjzNMCjA)"
-    echo "  - SMS Opt-In (uonpMKiEO0yEvhmo)"
+    echo "  - Roof-Mode"
+    echo "  - SMS Opt-In"
     echo ""
     echo "Next steps:"
     echo "  1. Access n8n at http://instance1.duckdns.org:5678"

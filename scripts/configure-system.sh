@@ -37,23 +37,33 @@ echo ""
 echo "Step 3: Creating backup script..."
 cat > scripts/backup-db.sh << 'EOF'
 #!/bin/bash
-# Automated n8n database backup
+# Automated n8n database backup (atomic using SQLite .backup)
 set -e
+umask 077
 
 SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
 cd "\$SCRIPT_DIR/.."
 
 BACKUP_DIR="backups"
-DB_PATH="/var/lib/docker/volumes/vorzimmerdrache_n8n_data/_data/database.sqlite"
 TIMESTAMP="\$(date +%Y%m%d_%H%M%S)"
 
-echo "Creating backup: \$BACKUP_DIR/n8n-db-\$TIMESTAMP.sqlite"
+mkdir -p "\$BACKUP_DIR"
+echo "Creating atomic backup: \$BACKUP_DIR/n8n-db-\$TIMESTAMP.sqlite"
 
-# Backup database via docker
-docker cp vorzimmerdrache-n8n-1:/home/node/.n8n/database.sqlite "\$BACKUP_DIR/n8n-db-\$TIMESTAMP.sqlite"
+# Use sqlite3 .backup for safe backup (WAL-aware)
+docker exec vorzimmerdrache-n8n-1 sqlite3 /home/node/.n8n/database.sqlite ".backup '/tmp/backup.sqlite'"
+docker cp vorzimmerdrache-n8n-1:/tmp/backup.sqlite "\$BACKUP_DIR/n8n-db-\$TIMESTAMP.sqlite"
+docker exec vorzimmerdrache-n8n-1 rm -f /tmp/backup.sqlite
+
+# Verify backup integrity
+if ! sqlite3 "\$BACKUP_DIR/n8n-db-\$TIMESTAMP.sqlite" "PRAGMA integrity_check;" > /dev/null 2>&1; then
+  echo "❌ Backup integrity check failed, removing corrupted backup"
+  rm -f "\$BACKUP_DIR/n8n-db-\$TIMESTAMP.sqlite"
+  exit 1
+fi
 
 # Keep only last 7 backups
-find "\$BACKUP_DIR" -name "n8n-db-*.sqlite" -type f | sort -r | tail -n +8 | xargs rm -f
+find "\$BACKUP_DIR" -name "n8n-db-*.sqlite" -type f -print0 | sort -rz -z | tail -z -n +8 | xargs -0 rm -f --
 
 echo "✅ Backup completed: \$BACKUP_DIR/n8n-db-\$TIMESTAMP.sqlite"
 echo "ℹ️  Last 7 backups retained"
@@ -70,7 +80,7 @@ cat > scripts/validate-env.sh << 'EOF'
 # Validate .env configuration
 set -e
 
-ENV_FILE=".env"
+ENV_FILE="../.env"
 ERRORS=0
 
 echo "Validating configuration..."
@@ -78,43 +88,43 @@ echo ""
 
 # Check for placeholders
 echo "Checking for placeholder values..."
-if grep -q "ACxxxxxxxxxxxxxxxx" "\$ENV_FILE"; then
+if grep -q "ACxxxxxxxxxxxxxxxx" "$ENV_FILE"; then
     echo "❌ TWILIO_ACCOUNT_SID is still a placeholder"
     ((ERRORS++))
 fi
 
-if grep -q "your_twilio_auth_token_here" "\$ENV_FILE"; then
+if grep -q "your_twilio_auth_token_here" "$ENV_FILE"; then
     echo "❌ TWILIO_AUTH_TOKEN is still a placeholder"
     ((ERRORS++))
 fi
 
-if grep -q "1234567890:AAAAAAAA" "\$ENV_FILE"; then
+if grep -q "1234567890:AAAAAAAA" "$ENV_FILE"; then
     echo "❌ TELEGRAM_BOT_TOKEN is still a placeholder"
     ((ERRORS++))
 fi
 
-if grep -q "TELEGRAM_CHAT_ID=123456789" "\$ENV_FILE"; then
+if grep -q "TELEGRAM_CHAT_ID=123456789" "$ENV_FILE"; then
     echo "❌ TELEGRAM_CHAT_ID is still a placeholder"
     ((ERRORS++))
 fi
 
-if grep -q "WHxxxxxxxxxxxxxxxx" "\$ENV_FILE"; then
+if grep -q "WHxxxxxxxxxxxxxxxx" "$ENV_FILE"; then
     echo "❌ TWILIO_WHATSAPP_TEMPLATE_SID is still a placeholder"
     ((ERRORS++))
 fi
 
 # Check SSL email
-if grep -q "^SSL_EMAIL=admin@example.com" "\$ENV_FILE"; then
+if grep -q "^SSL_EMAIL=admin@example.com" "$ENV_FILE"; then
     echo "⚠️  SSL_EMAIL is invalid (Let's Encrypt will fail)"
     ((ERRORS++))
 fi
 
 echo ""
-if [ "\$ERRORS" -eq 0 ]; then
+if [ "$ERRORS" -eq 0 ]; then
     echo "✅ All configuration values look valid!"
     exit 0
 else
-    echo "❌ Found \$ERRORS configuration errors"
+    echo "❌ Found $ERRORS configuration errors"
     exit 1
 fi
 EOF
