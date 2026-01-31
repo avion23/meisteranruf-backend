@@ -119,7 +119,42 @@ sequenceDiagram
 - Customer's OptIn_Status updated in Google Sheets
 - Can now respond to customer on WhatsApp
 
-## 4. Data Model
+## 4. Multi-User Architecture
+
+### Single Craftsman (Current Implementation)
+
+**⚠️ Current Limitation:** The system is designed for ONE craftsman.
+
+**Configuration per craftsman:**
+- One Twilio phone number
+- One Telegram Chat ID (receives all alerts)
+- One Google Sheet (stores all customers)
+
+**To add a second craftsman, you need:**
+- Separate Twilio number
+- Separate Telegram bot/chat
+- Separate n8n instance OR routing logic by:
+  - Geographic area (ZIP code/area code)
+  - Time of day (business hours per region)
+  - Phone number prefix
+
+### Multiple Customers ✅
+
+**How it works:**
+- Every caller is a customer
+- Phone number = unique identifier
+- Google Sheets stores unlimited customers
+- Call_Log tracks all interactions per customer
+- Returning customers recognized by phone lookup
+
+**Example:**
+```
+Customer A: +49 171 1234567 (called 3x, opted-in)
+Customer B: +49 160 9876543 (called 1x, not opted-in)
+Customer C: +1 913 5550123 (called 2x, opted-in)
+```
+
+## 5. Data Model
 
 ### Google Sheets Structure
 
