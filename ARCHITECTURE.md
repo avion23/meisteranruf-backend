@@ -1,110 +1,235 @@
 # Vorzimmerdrache: System Architecture Documentation
 
-## 1. Overview
-Vorzimmerdrache is an automated communication bridge designed for craftsmen ("Roof-Mode"). It intercepts incoming calls via Twilio, provides automated voice responses, manages SMS-to-WhatsApp conversion (Double Opt-In), and logs all interactions in a Google Sheets-based CRM. The system ensures that craftsmen can remain focused on site while leads are captured and qualified via automated messaging.
+## Quick Start
+**What it does:** Automatically handles missed calls from customers, sends a voice message, captures their info in a spreadsheet, and moves them to WhatsApp for follow-up.
 
-## 2. System Architecture Diagram
-The following flowchart illustrates the end-to-end data flow from initial contact to CRM update.
+**Who it's for:** Craftsmen (roofers, plumbers, etc.) who can't answer their phone while working.
+
+**What happens:** A customer calls → hears "We're on the roof, reply JA for WhatsApp" → gets SMS → replies "JA" → receives WhatsApp link with booking info → craftsman sees notification and can follow up.
+
+## 1. System Overview
+
+### Infrastructure Layer
+The system runs on Docker behind Traefik reverse proxy:
 
 ```mermaid
-graph TD
-    subgraph External_Services
-        C[Customer/Caller]
-        T[Twilio Voice/SMS]
-        TG[Telegram Bot]
+graph LR
+    subgraph Edge
+        T[Twilio Gateway]
     end
-
-    subgraph Infrastructure_Docker
-        TR[Traefik Reverse Proxy]
-        N8N[n8n Automation Engine]
-    end
-
-    subgraph Data_Storage
-        GS[Google Sheets CRM]
-    end
-
-    C -- "1. Phone Call" --> T
-    T -- "2. Webhook + Signature" --> TR
-    TR --> N8N
-
-    N8N -- "3. Lookup/Log" --> GS
-    N8N -- "4. TwiML Response" --> T
-    T -- "5. Voice Message" --> C
-
-    N8N -- "6. SMS Opt-In Invite" --> T
-    T -- "7. SMS" --> C
-
-    C -- "8. SMS 'JA' (Opt-In)" --> T
-    T -- "9. Webhook" --> N8N
-    N8N -- "10. Update Opt-In Status" --> GS
-    N8N -- "11. WhatsApp Link" --> T
-    T -- "12. WhatsApp Message" --> C
     
-    N8N -- "13. Status Alert" --> TG
+    subgraph Application_Layer
+        TR[Traefik Proxy]
+        N[n8n Automation Engine]
+    end
+    
+    subgraph Data_Alerting
+        GS[Google Sheets CRM]
+        TG[Telegram Bot API]
+    end
+
+    T <--> TR
+    TR <--> N
+    N <--> GS
+    N --> TG
 ```
 
-## 3. Workflow Descriptions
+### What Each Component Does
+| Component | Role |
+|-----------|------|
+| **Twilio** | Receives calls/SMS, sends voice messages and SMS |
+| **n8n** | Orchestrates workflows (call handling, SMS processing, CRM updates) |
+| **Google Sheets** | Stores customer data and call history |
+| **Telegram** | Sends real-time alerts to the craftsman |
+| **Traefik** | Handles SSL, routing, and security |
 
-### 3.1 Workflow: Roof-Mode (Incoming Call)
-*   **Trigger:** Twilio Voice Webhook (`POST /webhook/incoming-call`).
-*   **Validation:** HMAC-SHA1 signature verification using `TWILIO_AUTH_TOKEN` to prevent spoofing.
-*   **Normalization:** JavaScript-based phone number formatting (converts `017x`, `0049`, `49` to E.164 format `+49...`).
-*   **Logic:**
-    1.  **Immediate Response:** Returns TwiML `<Say>` and `<Pause>` to the caller ("Moin! Wir sind auf dem Dach...").
-    2.  **CRM Lookup:** Queries Google Sheets for the normalized phone number.
-    3.  **SMS Dispatch:** Sends an SMS with a WhatsApp Opt-In request ("Antworten Sie mit JA").
-    4.  **Logging:** Appends call timestamp and caller ID to the `Call_Log` sheet.
-    5.  **Alerting:** Sends a Telegram notification to the craftsman.
+## 2. Call Handling Flow
 
-### 3.2 Workflow: SMS Opt-In
-*   **Trigger:** Twilio SMS Webhook (`POST /webhook/sms-response`).
-*   **Logic:**
-    1.  **Parsing:** Evaluates the message body. If "JA" (case-insensitive):
-    2.  **CRM Update:** Updates the "Opt-In" column in Google Sheets for the corresponding phone number.
-    3.  **WhatsApp Handover:** Sends an automated WhatsApp message via Twilio (or WAHA) containing the appointment/booking link.
-    4.  **Alerting:** Notifies the craftsman via Telegram that a lead has opted in.
+When a customer calls the craftsman's number:
 
-## 4. Onboarding & CRM Structure
-### 4.1 CRM Data Model (Google Sheets)
-The system requires a Spreadsheet with at least two sheets:
-1.  **Customers:** `[Phone, Name, Company, OptIn_Status, Last_Contact]`
-2.  **Call_Log:** `[Timestamp, Phone, Status, Action_Taken]`
+```mermaid
+sequenceDiagram
+    participant C as Customer
+    participant T as Twilio
+    participant N as n8n
+    participant G as Google Sheets
+    participant H as Craftsman (Telegram)
 
-### 4.2 Onboarding Procedure
-1.  **Manual Entry:** Admin adds known customers to the "Customers" sheet.
-2.  **Automated Entry:** New callers are automatically appended to the `Call_Log`. If the "Lookup" fails in the Roof-Mode workflow, the system treats them as "New Leads" and follows the fallback SMS path.
+    C->>T: Dials Number
+    T->>N: Webhook: Incoming Call
+    
+    Note over N: 1. Verify signature<br/>2. Normalize phone number
+    
+    par Actions in Parallel
+        N->>G: Log call in Call_Log
+        N->>G: Look up customer info
+        N->>H: Send alert: "Missed call from..."
+    end
+    
+    N->>T: Return voice message
+    T->>C: 🔊 "We're on the roof. Reply JA for WhatsApp"
+    
+    N->>T: Send SMS with opt-in invite
+    T->>C: 📱 "Reply JA to continue on WhatsApp"
+```
 
-## 5. Interfaces
-### 5.1 Craftsman (Handwerker) Interface
-*   **Passive:** Receives real-time Telegram alerts for missed calls and successful WhatsApp opt-ins.
-*   **Active:** Communicates with customers via WhatsApp once the automated flow provides the link.
+**What the customer experiences:**
+1. Calls the number
+2. Hears: "Moin! We're on the roof right now..."
+3. Receives SMS: "Reply JA to continue on WhatsApp"
 
-### 5.2 Administrator Interface
-*   **Monitoring:** n8n execution dashboard to track workflow successes/failures.
-*   **Data Management:** Google Sheets UI for editing customer details and reviewing call history.
-*   **Configuration:** `.env` file for API keys, phone numbers, and Telegram Chat IDs.
+**What the craftsman sees:**
+- Telegram notification: "Missed call from +49 171 1234567"
+- Entry in Google Sheets Call_Log
 
-## 6. Error Handling & Monitoring
-*   **Node-Level Retries:** Twilio nodes configured with 3 retries and 2s wait intervals.
-*   **Error Branches:** All critical nodes (Sheets, Twilio, HTTP) have error paths connected to Telegram alerts.
-*   **Infrastructure:** 
-    *   Docker health checks monitor n8n availability.
-    *   Traefik provides rate limiting (100 avg/200 burst) to prevent Webhook DDoS.
-    *   SQLite WAL (Write-Ahead Logging) mode enabled to prevent database locking during concurrent writes.
+## 3. SMS Opt-In Flow
 
-## 7. Security Measures
-*   **Request Validation:** All Twilio webhooks are validated using the `X-Twilio-Signature` header.
-*   **Transport Security:** Forced HTTPS via Traefik and Let's Encrypt TLS.
-*   **Authentication:** n8n UI protected via Basic Auth and JWT.
-*   **Environment Isolation:** Sensitive credentials stored in `.env` and injected into the container at runtime; no keys are hardcoded in n8n JSON.
+After receiving the SMS, the customer opts in:
 
-## 8. Technical Stack Summary
-| Component | Technology | Role |
-| :--- | :--- | :--- |
-| **Orchestration** | n8n (v1.50.0) | Workflow logic and integration |
-| **Gateway** | Twilio | Voice, SMS, and WhatsApp API |
-| **Proxy** | Traefik v2.11 | SSL termination and request routing |
-| **Database** | SQLite (WAL mode) | n8n internal state management |
-| **Storage** | Google Sheets API | CRM and logging |
-| **Alerting** | Telegram Bot API | Real-time craftsman notifications |
-| **Containerization**| Docker / Compose | Deployment and environment isolation |
+```mermaid
+sequenceDiagram
+    participant C as Customer
+    participant T as Twilio
+    participant N as n8n
+    participant G as Google Sheets
+    participant H as Craftsman (Telegram)
+
+    C->>T: Replies: "JA"
+    T->>N: Webhook: SMS Response
+    
+    Note over N: Parse message body
+    
+    alt Message = "JA"
+        N->>G: Update OptIn_Status = TRUE
+        N->>T: Send WhatsApp message
+        T->>C: 📲 WhatsApp: "Here's your booking link..."
+        N->>H: Alert: "New lead opted in!"
+    else Other text
+        N->>H: Alert: "Invalid response, may need manual follow-up"
+    end
+```
+
+**What the customer experiences:**
+1. Replies "JA" to SMS
+2. Receives WhatsApp message with booking/appointment link
+3. Can now chat with the craftsman on WhatsApp
+
+**What the craftsman sees:**
+- Telegram notification: "New lead opted in: +49 171 1234567"
+- Customer's OptIn_Status updated in Google Sheets
+- Can now respond to customer on WhatsApp
+
+## 4. Data Model
+
+### Google Sheets Structure
+
+**Sheet 1: Customers (Lead_DB)**
+| Column | Description | Example |
+|--------|-------------|---------|
+| Phone | Primary key (E.164 format) | +491711234567 |
+| Name | Customer name | Hans Müller |
+| OptIn_Status | Boolean (TRUE/FALSE) | TRUE |
+| Last_Contact | Date of last interaction | 2026-02-01 |
+
+**Sheet 2: Call_Log**
+| Column | Description | Example |
+|--------|-------------|---------|
+| Timestamp | When call occurred | 2026-02-01 14:30:00 |
+| Phone | Caller number | +491711234567 |
+| Status | Call outcome | Missed / Opted-In |
+| Action_Taken | What system did | Sent SMS invite |
+
+## 5. Technical Details
+
+### Phone Number Normalization
+All incoming numbers are converted to E.164 format:
+- **Input variations:** `0171 1234567`, `0049 171 1234567`, `49 171 1234567`
+- **Output:** `+491711234567`
+
+### Security Measures
+- **Webhook validation:** HMAC-SHA1 signature check on all Twilio requests
+- **Rate limiting:** 100 requests/minute via Traefik
+- **TLS only:** All traffic forced over HTTPS
+- **Credential storage:** API keys in `.env` (never in code)
+
+### Error Handling
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+| Webhook timeout | Twilio alert | Fallback to static TwiML |
+| Sheets API limit | n8n error (429) | Retry 3x with exponential backoff |
+| Database lock | SQLite error | WAL mode enabled |
+
+## 6. Onboarding New Craftsmen
+
+### Step-by-Step Setup
+
+**1. Prepare Google Sheets**
+- Create spreadsheet with two sheets: `Customers` and `Call_Log`
+- Add headers as shown in Section 4
+- Share with service account email
+
+**2. Configure Twilio**
+- Purchase phone number
+- Set webhook URLs:
+  - Voice: `https://your-domain.com/webhook/incoming-call`
+  - SMS: `https://your-domain.com/webhook/sms-response`
+
+**3. Set up n8n Workflow**
+- Duplicate the template workflow
+- Update environment variables:
+  ```bash
+  CRAFTSMAN_NAME="Max Mustermann"
+  CRAFTSMAN_PHONE="+491711234567"
+  TELEGRAM_CHAT_ID="123456789"
+  SPREADSHEET_ID="your-sheet-id"
+  TWILIO_ACCOUNT_SID="ACxxxxx"
+  TWILIO_AUTH_TOKEN="your-token"
+  ```
+
+**4. Configure Telegram**
+- Start chat with your bot
+- Get chat ID via `/start` command
+- Add to `.env` as `TELEGRAM_CHAT_ID`
+
+**5. Test Flow**
+- Call the Twilio number
+- Verify you receive Telegram alert
+- Check Google Sheets for log entry
+- Reply "JA" to SMS
+- Verify WhatsApp message arrives
+
+## 7. Daily Operations
+
+### For the Craftsman
+
+**Passive Monitoring:**
+- You'll receive Telegram alerts for:
+  - Every missed call with phone number
+  - Every successful opt-in
+
+**Active Follow-up:**
+- Open WhatsApp to message customers who opted in
+- Check Google Sheets to see call history
+- No need to manually enter data - it's all automatic
+
+### For the Administrator
+
+**Monitoring:**
+- Check n8n dashboard for workflow failures
+- Review Call_Log monthly against Twilio billing
+
+**Maintenance:**
+- Update `.env` for configuration changes
+- Restart containers: `docker-compose restart`
+
+## 8. Technology Stack
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| Orchestration | n8n v1.50.0 | Workflow automation |
+| Communication | Twilio API | Voice, SMS, WhatsApp |
+| Proxy | Traefik v2.11 | SSL, routing, rate limiting |
+| Database | SQLite (WAL) | n8n internal state |
+| CRM | Google Sheets API | Customer data, logs |
+| Notifications | Telegram Bot | Real-time alerts |
+| Deployment | Docker Compose | Container orchestration |
