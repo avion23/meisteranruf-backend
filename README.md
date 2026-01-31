@@ -1,190 +1,178 @@
 # Vorzimmerdrache
 
-## What This Is
+## Was das ist
 
-This is a 1GB VPS running:
-- n8n with SQLite (no external database)
-- Twilio API for WhatsApp + Voice (you pay per message)
-- Google Sheets API as CRM (you manage in Sheets)
-- Total container RAM: ~512MB (384MB + 128MB)
+Ein 1GB VPS mit folgendem Setup:
+- n8n mit SQLite (keine externe Datenbank)
+- Twilio API für WhatsApp + Voice (Pay-per-Message)
+- Google Sheets API als CRM (Verwaltung via Browser)
+- Gesamter Container-RAM: ~512MB (384MB + 128MB)
 
-NO PostgreSQL, NO Redis, NO WAHA, NO Baserow, NO worker processes.
+KEIN PostgreSQL, KEIN Redis, KEIN WAHA, KEIN Baserow, KEINE Worker-Prozesse.
 
 ---
 
-## What It Does
+## Funktionsweise
 
-1. Customer calls your Twilio number
-2. Webhook triggers n8n workflow
-3. n8n immediately responds with German voice message "Moin! Wir sind auf dem Dach."
-4. n8n looks up phone in Google Sheets
-5. n8n sends WhatsApp to customer (via Twilio API)
-6. n8n sends Telegram alert to you
+1. Kunde ruft Twilio-Nummer an.
+2. Webhook triggert n8n Workflow.
+3. n8n antwortet sofort mit Sprachansage: "Moin! Wir sind auf dem Dach."
+4. n8n prüft Telefonnummer in Google Sheets.
+5. n8n sendet WhatsApp an Kunden (via Twilio API).
+6. n8n sendet Telegram-Alert an dich.
 
-That's it. No fancy scoring, no subsidy calculator, no enrichment.
+Minimalistischer Ansatz. Kein Lead-Scoring, keine Förderrechner, keine Datenanreicherung.
 
 ---
 
 ## WhatsApp Opt-In Flow (UWG-Konform)
 
-Für rechtssichere WhatsApp-Nutzung empfiehlt sich der folgende Opt-In-Prozess:
+Für rechtssichere WhatsApp-Nutzung wird folgender Prozess genutzt:
 
 ### Option A: SMS als Brücke → WhatsApp erst nach "JA"
 
-1. Kunde ruft an, PV-Betrieb geht nicht ran (oder nach X Sekunden keine Annahme)
-2. System schickt sofort eine kurze SMS (neutral, nicht werblich):
+1. Anruf verpasst oder nach X Sekunden nicht angenommen.
+2. System sendet sofort neutrale SMS:
    "Hi, wir haben Ihren Anruf verpasst. Möchten Sie Updates per WhatsApp? Antworten Sie mit JA."
-3. Antwortet der Kunde "JA" → WhatsApp Opt-in dokumentiert → ab dann WhatsApp-Nachrichten (Terminlink, Rückrufzeit, Fragen)
+3. Kunde antwortet mit "JA" → Opt-In dokumentiert → Ab dann WhatsApp-Kommunikation (Termine, Rückrufe).
 
 **Vorteile:**
-- Trifft die WhatsApp-Opt-In Logik deutlich sauberer
-- Reduziert UWG-Risiko (Gesetz gegen den unlauteren Wettbewerb)
-- Erst um Erlaubnis bitten, dann nutzen
-- Bleibt trotzdem schnell im Workflow
+- Konform mit WhatsApp Opt-In Richtlinien.
+- Minimiert UWG-Risiko (Gesetz gegen den unlauteren Wettbewerb).
+- Erst Erlaubnis, dann Nachricht.
 
-### SMS Opt-in Setup
+### SMS Opt-In Setup
 
-1. Configure Twilio SMS webhook to: `https://<DEINE-DOMAIN>/webhook/sms-response`
-2. Add Google Sheets column "whatsapp_opt_in" to track consent
-3. Import workflows/sms-opt-in.json into n8n
-4. Twilio will send SMS responses to the webhook
+1. Twilio SMS Webhook konfigurieren: `https://<DEINE-DOMAIN>/webhook/sms-response`
+2. Google Sheets Spalte "whatsapp_opt_in" zur Dokumentation hinzufügen.
+3. `workflows/sms-opt-in.json` in n8n importieren.
+4. Twilio leitet SMS-Antworten an den Webhook weiter.
 
 ---
 
 ## Tech Stack
 
-- **n8n**: v1.50.0 (stable, 1GB RAM optimized)
-- **Traefik**: v2.11 (SSL termination, HTTP→HTTPS redirect)
-- **Database**: SQLite (internal to n8n, WAL mode enabled)
-- **WhatsApp**: Twilio Business API (stateless, runs on Twilio's servers)
-- **Voice**: Twilio (stateless, runs on Twilio's servers)
-- **CRM**: Google Sheets (you manage in browser)
-- **Notifications**: Telegram Bot API
+- **n8n**: v1.50.0 (stabil, optimiert für 1GB RAM)
+- **Traefik**: v2.11 (SSL-Terminierung, HTTP→HTTPS Redirect)
+- **Datenbank**: SQLite (n8n-intern, WAL-Modus aktiviert)
+- **WhatsApp**: Twilio Business API (stateless, läuft auf Twilio-Servern)
+- **Voice**: Twilio (stateless, läuft auf Twilio-Servern)
+- **CRM**: Google Sheets (Verwaltung im Browser)
+- **Benachrichtigungen**: Telegram Bot API
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed system design, data flows, and operational procedures.
-
----
-
-## Why 1GB Works
-
-- n8n (200MB) + Traefik (50MB) + OS overhead = ~300MB total
-- No heavy services (Postgres = 150MB minimum)
-- WhatsApp doesn't run on your server, runs on Twilio's
-- Google Sheets uses 0MB (just API calls)
+Details zu Systemdesign und Datenflüssen in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
-## Cost
+## Warum 1GB ausreicht
 
-- VPS: €4.15/month (Hetzner CX11, 1GB)
-- Twilio: €0.005/msg × 100 msgs = €0.50/month (WhatsApp only)
-- Voice: €0.05/min × 30 min calls = €1.50/month (Dach-Mode only)
-- Google Sheets: €0 (free tier, 28,000 requests/month)
-
-**TOTAL: ~€6.15/month**
+- n8n (200MB) + Traefik (50MB) + OS-Overhead = ~300MB Gesamtauslastung.
+- Keine schweren Dienste (Postgres benötigt min. 150MB).
+- WhatsApp-Infrastruktur liegt bei Twilio, nicht auf dem eigenen Server.
+- Google Sheets verbraucht 0MB (reine API-Calls).
 
 ---
 
-## Deployment
+## Kosten
 
-**For detailed deployment instructions, see [SERVER_SETUP.md](SERVER_SETUP.md)**
+- VPS: €4.15/Monat (Hetzner CX11, 1GB)
+- Twilio: €0.005/Nachricht × 100 Msgs = €0.50/Monat (nur WhatsApp)
+- Voice: €0.05/Min × 30 Min Anrufe = €1.50/Monat (Dach-Modus)
+- Google Sheets: €0 (Free Tier, 28.000 Requests/Monat)
 
-Quick start:
-1. Setup Twilio account (WhatsApp + Voice)
-2. Create Google Sheet
-3. Configure `.env` file
-4. Run: `./scripts/deploy-1gb.sh`
+**GESAMT: ~€6.15/Monat**
 
 ---
 
-## Project Status
+## Bereitstellung
 
-### ✅ What's Implemented
+Detaillierte Anweisungen in [SERVER_SETUP.md](SERVER_SETUP.md).
 
-**Infrastructure:**
-- ✅ Docker Compose with Traefik v2.11 (SSL termination)
-- ✅ n8n with SQLite (no external database)
-- ✅ Memory limits: n8n (512MB), Traefik (256MB)
-- ✅ Healthchecks: n8n monitored every 30s
-- ✅ Log rotation: 10MB max, 3 files per container
-- ✅ Automated backups: retains 7 most recent backups
-- ✅ Port 5678 exposed (for direct access during setup)
+Quick Start:
+1. Twilio Account einrichten (WhatsApp + Voice).
+2. Google Sheet erstellen.
+3. `.env` Datei konfigurieren.
+4. Ausführen: `./scripts/deploy-1gb.sh`
 
-**Security:**
-- ✅ Traefik insecure API removed (dashboard not exposed)
-- ✅ Docker socket mounted read-only
-- ✅ Port 5678 firewalled from public internet
-- ✅ Docker prune --volumes flag removed (prevents data loss)
-- ✅ Error handling in workflows (Telegram alerts on failures)
-- ✅ Complete German mobile prefix list (26 prefixes)
-- ✅ Phone validation: 10-13 digits (edge cases handled)
+---
+
+## Projektstatus
+
+### ✅ Implementiert
+
+**Infrastruktur:**
+- Docker Compose mit Traefik v2.11 (SSL).
+- n8n mit SQLite.
+- Memory Limits: n8n (512MB), Traefik (256MB).
+- Healthchecks: n8n Monitoring alle 30s.
+- Log-Rotation: 10MB max, 3 Dateien pro Container.
+- Automatisierte Backups: Die letzten 7 Backups werden vorgehalten.
+- Port 5678 für initiales Setup freigegeben.
+
+**Sicherheit:**
+- Traefik Dashboard deaktiviert (keine Angriffsfläche).
+- Docker Socket read-only gemountet.
+- Port 5678 durch Firewall geschützt.
+- Fehlerbehandlung in Workflows (Telegram-Alerts bei Fehlern).
+- Validierung deutscher Mobilfunknummern (26 Präfixe).
 
 **Workflows:**
-- ✅ roof-mode.json (call handling, SMS, WhatsApp, Telegram)
-- ✅ sms-opt-in.json (WhatsApp opt-in via SMS bridge)
-- ✅ Both imported into n8n database
-- ✅ Error nodes added with retry logic
+- `roof-mode.json` (Anrufe, SMS, WhatsApp, Telegram).
+- `sms-opt-in.json` (WhatsApp Opt-In via SMS).
+- Error-Nodes mit Retry-Logik.
 
-**Automation:**
-- ✅ scripts/configure-system.sh (initial setup without credentials)
-- ✅ scripts/backup-db.sh (automated daily backups)
-- ✅ scripts/validate-env.sh (configuration validation)
-- ✅ scripts/import-workflows.sh (workflow import helper)
-- ✅ scripts/README.md (script documentation)
+**Automatisierung:**
+- `scripts/configure-system.sh` (Initiales Setup).
+- `scripts/backup-db.sh` (Tägliche Backups).
+- `scripts/validate-env.sh` (Konfigurationsprüfung).
+- `scripts/import-workflows.sh` (Workflow-Import).
 
-**Documentation:**
-- ✅ README.md (product-focused, clean structure)
-- ✅ SERVER_SETUP.md (comprehensive deployment guide)
-- ✅ .env.example updated with real Google Sheets CRM ID
-- ✅ Google Sheets CRM linked: https://docs.google.com/spreadsheets/d/1U73YUGk_GBWsAnM5LPjXpCT8bTXHYScuPoLumNdnfUY
+### 📋 Erfordert manuelle Konfiguration (ca. 32 Minuten)
 
-### 📋 What Requires Manual Configuration (32 minutes)
+**Schritt 1: API Credentials (10 Min)**
+`/opt/vorzimmerdrache/.env` bearbeiten und Platzhalter ersetzen:
+- `TWILIO_ACCOUNT_SID`
+- `TWILIO_AUTH_TOKEN`
+- `TELEGRAM_BOT_TOKEN`
+- `TELEGRAM_CHAT_ID`
+- `TWILIO_WHATSAPP_TEMPLATE_SID`
 
-**Step 1: Replace API Credentials (10 minutes)**
-Edit `/opt/vorzimmerdrache/.env` and replace these placeholders:
-- `TWILIO_ACCOUNT_SID` (from Twilio Console)
-- `TWILIO_AUTH_TOKEN` (from Twilio Console)
-- `TELEGRAM_BOT_TOKEN` (from @BotFather)
-- `TELEGRAM_CHAT_ID` (from Telegram Bot API test)
-- `TWILIO_WHATSAPP_TEMPLATE_SID` (approved Twilio template)
+**Schritt 2: Workflows aktivieren (2 Min)**
+1. n8n Instanz öffnen.
+2. "Roof-Mode" & "SMS Opt-In" auf "Active" schalten.
 
-**Step 2: Activate Workflows (2 minutes)**
-1. Open https://instance1.duckdns.org
-2. Click "Roof-Mode" → Click toggle (top-right corner)
-3. Click "SMS Opt-In" → Click toggle (top-right corner)
-
-**Step 3: Configure n8n Credentials (15 minutes)**
+**Schritt 3: n8n Credentials hinterlegen (15 Min)**
 In n8n UI → Settings → Credentials:
-1. Google Sheets (OAuth2 or Service Account)
-2. Twilio (Account SID + Auth Token)
-3. Telegram (Bot Token)
+1. Google Sheets (OAuth2 oder Service Account).
+2. Twilio (Account SID + Auth Token).
+3. Telegram (Bot Token).
 
-**Step 4: Configure Twilio Webhooks (5 minutes)**
-In Twilio Console:
-- Voice webhook: `https://instance1.duckdns.org/webhook/incoming-call`
-- SMS webhook: `https://instance1.duckdns.org/webhook/sms-response`
+**Schritt 4: Twilio Webhooks (5 Min)**
+In der Twilio Console:
+- Voice Webhook: `https://<DEINE-DOMAIN>/webhook/incoming-call`
+- SMS Webhook: `https://<DEINE-DOMAIN>/webhook/sms-response`
 
-**Step 5: Test End-to-End (5 minutes)**
-- Call Twilio number
-- Verify SMS received
-- Reply "JA" to test opt-in
-- Check Google Sheet updates
-
----
-
-## What You Get
-
-- 2.1s response time (TwiML)
-- WhatsApp sent to customer
-- Telegram notification to you
-- Customer data in Google Sheets
+**Schritt 5: End-to-End Test (5 Min)**
+- Twilio Nummer anrufen.
+- SMS-Erhalt prüfen.
+- Mit "JA" antworten.
+- Google Sheet auf Updates prüfen.
 
 ---
 
-## What You DON'T Get
+## Was enthalten ist
 
-- No lead scoring
-- No subsidy calculation
-- No enrichment
-- No fancy CRM
-- No PostgreSQL
+- 2.1s Antwortzeit (TwiML).
+- Automatisierter WhatsApp-Versand.
+- Telegram-Benachrichtigung bei jedem Ereignis.
+- Kundendaten-Synchronisation in Google Sheets.
+
+---
+
+## Was NICHT enthalten ist
+
+- Kein Lead-Scoring.
+- Keine Förderrechner.
+- Keine Datenanreicherung.
+- Kein komplexes CRM.
+- Kein PostgreSQL.

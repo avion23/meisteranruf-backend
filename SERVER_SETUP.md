@@ -1,136 +1,136 @@
-# Server Setup Guide
+# Anleitung zur Server-Einrichtung
 
-## Prerequisites
+## Voraussetzungen
 
-### Server Requirements
-- **RAM**: 1GB minimum (CX11 at Hetzner recommended)
-- **Storage**: 20GB minimum (Docker volumes + logs)
-- **OS**: Ubuntu 22.04 LTS or Debian 12
-- **Ports**: 80 and 443 must be open
-- **Docker**: 20.10+ (installed by deploy script if missing)
+### Server-Anforderungen
+- **RAM**: Mindestens 1 GB (CX11 bei Hetzner empfohlen)
+- **Storage**: Mindestens 20 GB (Docker-Volumes + Logs)
+- **OS**: Ubuntu 22.04 LTS oder Debian 12
+- **Ports**: 80 und 443 müssen offen sein
+- **Docker**: 20.10+ (wird vom Deploy-Skript installiert, falls nicht vorhanden)
 
-### Domain Configuration
-- Domain or subdomain pointing to your server IP
-- DNS A record required (AAAA for IPv6 optional)
-- Recommended: DuckDNS for free dynamic DNS
-  - Example: `instance1.duckdns.org`
+### Domain-Konfiguration
+- Domain oder Subdomain, die auf Ihre Server-IP zeigt
+- DNS A-Record erforderlich (AAAA für IPv6 optional)
+- Empfohlen: DuckDNS für kostenloses dynamisches DNS
+  - Beispiel: `instance1.duckdns.org`
 
-### Required Accounts
+### Erforderliche Konten
 
 **Twilio** (WhatsApp + Voice)
-- Account SID and Auth Token
-- WhatsApp-enabled phone number
-- WhatsApp template approved
-- Minimum €20 credit required
+- Account SID und Auth Token
+- WhatsApp-fähige Telefonnummer
+- Genehmigte WhatsApp-Vorlage
+- Mindestens 20 € Guthaben erforderlich
 
 **Google** (Sheets API)
-- Google Cloud project
-- Sheets API enabled
-- OAuth2 credentials OR Service Account
-- Spreadsheet shared with account email
+- Google Cloud-Projekt
+- Sheets API aktiviert
+- OAuth2-Anmeldeinformationen ODER Service Account
+- Tabelle mit der Konto-E-Mail geteilt
 
 **Telegram** (Alert notifications)
-- Bot token from @BotFather
-- Chat ID for notifications
+- Bot-Token von @BotFather
+- Chat ID für Benachrichtigungen
 
 ---
 
-## Quick Deployment
+## Schnelle Bereitstellung
 
-### 1. Clone Repository
+### 1. Repository klonen
 ```bash
 git clone <your-repo-url> vorzimmerdrache
 cd vorzimmerdrache
 ```
 
-### 2. Configure Environment Variables
+### 2. Umgebungsvariablen konfigurieren
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-Update these critical variables:
-- `DOMAIN`: Your domain name
-- `SSL_EMAIL`: Email for Let's Encrypt certificates
-- `N8N_ENCRYPTION_KEY`: Generate with `openssl rand -hex 16`
-- `TWILIO_ACCOUNT_SID`: From Twilio console
-- `TWILIO_AUTH_TOKEN`: From Twilio console
-- `TWILIO_PHONE_NUMBER`: Your Twilio number
-- `TWILIO_WHATSAPP_SENDER`: WhatsApp-enabled number
-- `TELEGRAM_BOT_TOKEN`: From @BotFather
-- `TELEGRAM_CHAT_ID`: Your Telegram chat ID
-- Google credentials (see Service Accounts section below)
+Aktualisieren Sie diese wichtigen Variablen:
+- `DOMAIN`: Ihre Domain
+- `SSL_EMAIL`: E-Mail für Let's Encrypt-Zertifikate
+- `N8N_ENCRYPTION_KEY`: Generieren mit `openssl rand -hex 16`
+- `TWILIO_ACCOUNT_SID`: Aus der Twilio-Konsole
+- `TWILIO_AUTH_TOKEN`: Aus der Twilio-Konsole
+- `TWILIO_PHONE_NUMBER`: Ihre Twilio-Nummer
+- `TWILIO_WHATSAPP_SENDER`: WhatsApp-fähige Nummer
+- `TELEGRAM_BOT_TOKEN`: Von @BotFather
+- `TELEGRAM_CHAT_ID`: Ihre Telegram Chat ID
+- Google-Anmeldeinformationen (siehe Abschnitt Service Accounts unten)
 
-### 3. Run Deploy Script
+### 3. Deploy-Skript ausführen
 ```bash
 chmod +x scripts/deploy-1gb.sh
 ./scripts/deploy-1gb.sh
 ```
 
-### 4. Access n8n
+### 4. Auf n8n zugreifen
 ```bash
-# Script will output your URL
+# Das Skript gibt Ihre URL aus
 https://your-domain.com/
 ```
 
-Default n8n login (if configured):
-- Check `.env` for `N8N_BASIC_AUTH_USER` and `N8N_BASIC_AUTH_PASSWORD`
+Standard-n8n-Login (falls konfiguriert):
+- Prüfen Sie die `.env` auf `N8N_BASIC_AUTH_USER` und `N8N_BASIC_AUTH_PASSWORD`
 
 ---
 
-## Detailed Configuration
+## Detaillierte Konfiguration
 
-### Environment Variables
+### Umgebungsvariablen
 
-#### Required Variables
+#### Erforderliche Variablen
 ```bash
-# SSL and Domain
-SSL_EMAIL=admin@example.com              # Email for Let's Encrypt
-DOMAIN=instance1.duckdns.org             # Your domain
-N8N_ENCRYPTION_KEY=...                   # Generate: openssl rand -hex 16
+# SSL und Domain
+SSL_EMAIL=admin@example.com              # E-Mail für Let's Encrypt
+DOMAIN=instance1.duckdns.org             # Ihre Domain
+N8N_ENCRYPTION_KEY=...                   # Generieren: openssl rand -hex 16
 
-# n8n Configuration
-N8N_HOST=${DOMAIN}                       # Same as DOMAIN
-N8N_PORT=5678                            # Default n8n port
-N8N_PROTOCOL=https                        # HTTPS with Traefik
-WEBHOOK_URL=https://${DOMAIN}/           # Base URL for webhooks
-NODE_ENV=production                      # Production mode
-GENERIC_TIMEZONE=Europe/Berlin           # Your timezone
+# n8n Konfiguration
+N8N_HOST=${DOMAIN}                       # Gleich wie DOMAIN
+N8N_PORT=5678                            # Standard-n8n-Port
+N8N_PROTOCOL=https                        # HTTPS mit Traefik
+WEBHOOK_URL=https://${DOMAIN}/           # Basis-URL für Webhooks
+NODE_ENV=production                      # Produktionsmodus
+GENERIC_TIMEZONE=Europe/Berlin           # Ihre Zeitzone
 ```
 
-#### Twilio Configuration
+#### Twilio-Konfiguration
 ```bash
-TWILIO_ACCOUNT_SID=AC...                 # From Twilio console
-TWILIO_AUTH_TOKEN=...                    # From Twilio console
-TWILIO_PHONE_NUMBER=+491234567890        # Your Twilio number
-TWILIO_WHATSAPP_SENDER=whatsapp:+49...   # WhatsApp-enabled number
-TWILIO_WHATSAPP_TEMPLATE_SID=WH...       # Template SID from Twilio
+TWILIO_ACCOUNT_SID=AC...                 # Aus der Twilio-Konsole
+TWILIO_AUTH_TOKEN=...                    # Aus der Twilio-Konsole
+TWILIO_PHONE_NUMBER=+491234567890        # Ihre Twilio-Nummer
+TWILIO_WHATSAPP_SENDER=whatsapp:+49...   # WhatsApp-fähige Nummer
+TWILIO_WHATSAPP_TEMPLATE_SID=WH...       # Template SID von Twilio
 ```
 
-#### Telegram Configuration
+#### Telegram-Konfiguration
 ```bash
-TELEGRAM_BOT_TOKEN=1234567890:ABC...     # From @BotFather
-TELEGRAM_CHAT_ID=123456789               # Your chat ID (send msg to @userinfobot)
+TELEGRAM_BOT_TOKEN=1234567890:ABC...     # Von @BotFather
+TELEGRAM_CHAT_ID=123456789               # Ihre Chat ID (Nachricht an @userinfobot senden)
 ```
 
 #### Google Sheets OAuth2
 ```bash
-GOOGLE_SHEETS_SPREADSHEET_ID=1U73YUGk... # From spreadsheet URL
-GOOGLE_SHEETS_SHEET_NAME=Leads           # Sheet/tab name
-GOOGLE_SHEETS_RANGE=Sheet1!A1:F100       # Data range
+GOOGLE_SHEETS_SPREADSHEET_ID=1U73YUGk... # Aus der Tabellen-URL
+GOOGLE_SHEETS_SHEET_NAME=Leads           # Blatt-/Tab-Name
+GOOGLE_SHEETS_RANGE=Sheet1!A1:F100       # Datenbereich
 GOOGLE_OAUTH_CLIENT_ID=...apps.googleusercontent.com
 GOOGLE_OAUTH_CLIENT_SECRET=...
-GOOGLE_OAUTH_REFRESH_TOKEN=...          # Long-lived token
-GOOGLE_OAUTH_ACCESS_TOKEN=...           # Short-lived, auto-refreshed
+GOOGLE_OAUTH_REFRESH_TOKEN=...          # Langlebiger Token
+GOOGLE_OAUTH_ACCESS_TOKEN=...           # Kurzfristig, automatisch aktualisiert
 ```
 
 #### Google Sheets Service Account (Alternative)
 ```bash
-GOOGLE_SHEETS_SPREADSHEET_ID=1U73YUGk... # From spreadsheet URL
-GOOGLE_SHEETS_SHEET_NAME=Leads           # Sheet/tab name
-GOOGLE_SHEETS_RANGE=Sheet1!A1:F100       # Data range
+GOOGLE_SHEETS_SPREADSHEET_ID=1U73YUGk... # Aus der Tabellen-URL
+GOOGLE_SHEETS_SHEET_NAME=Leads           # Blatt-/Tab-Name
+GOOGLE_SHEETS_RANGE=Sheet1!A1:F100       # Datenbereich
 GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
-# Paste entire JSON key as single-line string
+# Gesamten JSON-Schlüssel als einzeiligen String einfügen
 ```
 
 #### SMS Opt-in (Optional)
@@ -138,431 +138,431 @@ GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
 SMS_OPT_IN_WEBHOOK_URL=https://.../webhook/sms-response
 ```
 
-### Docker Compose Architecture
+### Docker Compose-Architektur
 
-#### Services
+#### Dienste
 
 **Traefik** (Reverse Proxy)
 - Image: `traefik:v2.11`
-- Memory Limit: 256MB
-- Memory Reservation: 64MB
+- Speicherlimit: 256MB
+- Speicherreservierung: 64MB
 - Ports: 80 (HTTP), 443 (HTTPS)
-- Purpose: SSL termination, routing, load balancing
+- Zweck: SSL-Terminierung, Routing, Lastverteilung
 
 **n8n** (Workflow Automation)
 - Image: `docker.n8n.io/n8nio/n8n`
-- Memory Limit: 512MB
-- Memory Reservation: 128MB
-- Database: SQLite (internal, no external DB)
-- Purpose: Workflow execution, webhook handling
+- Speicherlimit: 512MB
+- Speicherreservierung: 128MB
+- Datenbank: SQLite (intern, keine externe DB)
+- Zweck: Workflow-Ausführung, Webhook-Verarbeitung
 
-#### Total Resource Usage
-- **Total Container RAM**: ~300MB
-- **OS Overhead**: ~200MB
-- **Free RAM**: ~500MB for spikes
+#### Gesamter Ressourcenverbrauch
+- **Gesamter Container-RAM**: ~300MB
+- **OS-Overhead**: ~200MB
+- **Freier RAM**: ~500MB für Spitzen
 
 #### Health Checks
 ```yaml
-Traefik: Built-in (container restart)
-n8n: wget http://localhost:5678/ every 30s
+Traefik: Integriert (Container-Neustart)
+n8n: wget http://localhost:5678/ alle 30s
   - Timeout: 10s
-  - Retries: 3
-  - Start period: 60s
+  - Wiederholungen: 3
+  - Startperiode: 60s
 ```
 
-#### Volume Management
+#### Volume-Verwaltung
 ```yaml
-letsencrypt:  SSL certificates (Let's Encrypt)
-n8n_data:     n8n SQLite database + workflows + credentials
+letsencrypt:  SSL-Zertifikate (Let's Encrypt)
+n8n_data:     n8n SQLite-Datenbank + Workflows + Anmeldeinformationen
 ```
 
 ### Service Accounts
 
-#### Google Sheets: OAuth2 vs Service Account
+#### Google Sheets: OAuth2 vs. Service Account
 
 **OAuth2 (Original Setup)**
-- ✅ Easy to set up
-- ✅ Works with shared/personal spreadsheets
-- ❌ Tokens expire (needs refresh mechanism)
-- ❌ Not ideal for headless servers
+- ✅ Einfach einzurichten
+- ✅ Funktioniert mit geteilten/persönlichen Tabellen
+- ❌ Tokens laufen ab (benötigt Refresh-Mechanismus)
+- ❌ Nicht ideal für Headless-Server
 
-**Service Account (Recommended)**
-- ✅ No token expiration
-- ✅ Better for headless servers
-- ✅ More secure (credentials in JSON file)
-- ❌ Requires sharing spreadsheet with service account email
+**Service Account (Empfohlen)**
+- ✅ Kein Token-Ablauf
+- ✅ Besser für Headless-Server
+- ✅ Sicherer (Anmeldeinformationen in JSON-Datei)
+- ❌ Erfordert das Teilen der Tabelle mit der Service Account-E-Mail
 
-#### Service Account Setup Steps
+#### Schritte zur Einrichtung des Service Accounts
 
-**1. Enable Google Sheets API**
+**1. Google Sheets API aktivieren**
 ```bash
-# Go to: https://console.cloud.google.com/apis/library
-# Search: "Google Sheets API"
-# Click "Enable"
+# Gehen Sie zu: https://console.cloud.google.com/apis/library
+# Suchen Sie nach: "Google Sheets API"
+# Klicken Sie auf "Aktivieren"
 ```
 
-**2. Create Service Account**
+**2. Service Account erstellen**
 ```bash
-# Go to: https://console.cloud.google.com/iam-admin/serviceaccounts
-# Click "Create Service Account"
+# Gehen Sie zu: https://console.cloud.google.com/iam-admin/serviceaccounts
+# Klicken Sie auf "Service Account erstellen"
 # Name: "Vorzimmerdrache-n8n"
-# Click "Create and Continue"
-# Skip roles (optional)
-# Click "Done"
+# Klicken Sie auf "Erstellen und fortfahren"
+# Rollen überspringen (optional)
+# Klicken Sie auf "Fertig"
 ```
 
-**3. Generate JSON Key**
+**3. JSON-Schlüssel generieren**
 ```bash
-# Click on your new service account
-# Go to "Keys" tab
-# Click "Add Key" → "Create new key"
-# Key type: JSON
-# Download the JSON file
-# Copy contents to .env:
+# Klicken Sie auf Ihren neuen Service Account
+# Gehen Sie zum Tab "Schlüssel"
+# Klicken Sie auf "Schlüssel hinzufügen" → "Neuen Schlüssel erstellen"
+# Schlüsseltyp: JSON
+# Laden Sie die JSON-Datei herunter
+# Inhalte in .env kopieren:
 GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON='{"type":"service_account",...}'
-# Important: Use single quotes, escape inner quotes if needed
+# Wichtig: Einfache Anführungszeichen verwenden, innere Anführungszeichen bei Bedarf escapen
 ```
 
-**4. Share the Spreadsheet**
+**4. Die Tabelle teilen**
 ```bash
-# Open your spreadsheet
-# Click "Share"
-# Add service account email (from JSON file, "client_email" field)
-# Set as "Editor"
-# Click "Send"
+# Öffnen Sie Ihre Tabelle
+# Klicken Sie auf "Teilen"
+# Service Account-E-Mail hinzufügen (aus JSON-Datei, Feld "client_email")
+# Als "Editor" festlegen
+# Klicken Sie auf "Senden"
 ```
 
-**5. Configure n8n**
+**5. n8n konfigurieren**
 ```bash
-# Add credentials to .env (done in step 3)
-# Import workflows/roof-mode.json
-# Update Google Sheets node with Service Account credentials
-# Use JSON from GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON
+# Anmeldeinformationen zu .env hinzufügen (in Schritt 3 erledigt)
+# Workflows/roof-mode.json importieren
+# Google Sheets-Node mit Service Account-Anmeldeinformationen aktualisieren
+# JSON aus GOOGLE_SHEETS_SERVICE_ACCOUNT_JSON verwenden
 ```
 
-#### Twilio API Setup
+#### Twilio API-Einrichtung
 
-**1. Get Account Credentials**
+**1. Konto-Anmeldeinformationen abrufen**
 ```bash
-# Go to: https://console.twilio.com/
-# Dashboard → Project Info
-# Copy Account SID and Auth Token
+# Gehen Sie zu: https://console.twilio.com/
+# Dashboard → Projektinformationen
+# Account SID und Auth Token kopieren
 ```
 
-**2. Get WhatsApp Number**
+**2. WhatsApp-Nummer abrufen**
 ```bash
-# Messaging → Try it out → Send a WhatsApp message
-# Get a sandbox number OR purchase a WhatsApp-enabled number
-# Copy number to .env as TWILIO_WHATSAPP_SENDER
+# Messaging → Ausprobieren → Eine WhatsApp-Nachricht senden
+# Eine Sandbox-Nummer erhalten ODER eine WhatsApp-fähige Nummer kaufen
+# Nummer in .env als TWILIO_WHATSAPP_SENDER kopieren
 # Format: whatsapp:+491234567890
 ```
 
-**3. Approve WhatsApp Template**
+**3. WhatsApp-Vorlage genehmigen**
 ```bash
-# Messaging → Settings → WhatsApp templates
-# Create template (must be approved before use)
-# Template name and SID → Copy to .env
+# Messaging → Einstellungen → WhatsApp-Vorlagen
+# Vorlage erstellen (muss vor der Verwendung genehmigt werden)
+# Vorlagenname und SID → In .env kopieren
 ```
 
-**4. Get Voice Number**
+**4. Sprachnummer abrufen**
 ```bash
-# Phone Numbers → Buy a Number
-# Search for German number (+49)
-# Select and purchase
-# Copy number to .env as TWILIO_PHONE_NUMBER
+# Telefonnummern → Eine Nummer kaufen
+# Nach deutscher Nummer suchen (+49)
+# Auswählen und kaufen
+# Nummer in .env als TWILIO_PHONE_NUMBER kopieren
 # Format: +491234567890
 ```
 
-#### Telegram Bot Setup
+#### Telegram Bot-Einrichtung
 
-**1. Create Bot**
+**1. Bot erstellen**
 ```bash
-# Open Telegram
-# Search for: @BotFather
-# Send: /newbot
-# Follow prompts to name your bot
-# Copy bot token to .env as TELEGRAM_BOT_TOKEN
+# Telegram öffnen
+# Suchen Sie nach: @BotFather
+# Senden Sie: /newbot
+# Folgen Sie den Anweisungen, um Ihren Bot zu benennen
+# Bot-Token in .env als TELEGRAM_BOT_TOKEN kopieren
 ```
 
-**2. Get Chat ID**
+**2. Chat ID abrufen**
 ```bash
-# Open Telegram
-# Search for: @userinfobot
-# Start chat
-# Bot will reply with your Chat ID
-# Copy to .env as TELEGRAM_CHAT_ID
+# Telegram öffnen
+# Suchen Sie nach: @userinfobot
+# Chat starten
+# Der Bot antwortet mit Ihrer Chat ID
+# In .env als TELEGRAM_CHAT_ID kopieren
 ```
 
-**3. Test Bot**
+**3. Bot testen**
 ```bash
-# In Telegram, search for your bot by username
-# Send a message to verify it works
+# Suchen Sie in Telegram nach Ihrem Bot anhand des Benutzernamens
+# Senden Sie eine Nachricht, um die Funktion zu überprüfen
 ```
 
 ---
 
-## Troubleshooting
+## Fehlerbehebung
 
-### Common Issues and Solutions
+### Häufige Probleme und Lösungen
 
-#### Issue: n8n won't start
-**Symptoms**: Container keeps restarting, logs show errors
-**Solutions**:
+#### Problem: n8n startet nicht
+**Symptome**: Container startet ständig neu, Logs zeigen Fehler
+**Lösungen**:
 ```bash
-# Check logs
+# Logs prüfen
 docker compose logs n8n
 
-# Verify .env syntax (no spaces around =)
-# Check N8N_ENCRYPTION_KEY is exactly 32 chars
+# .env-Syntax überprüfen (keine Leerzeichen um =)
+# Prüfen, ob N8N_ENCRYPTION_KEY genau 32 Zeichen lang ist
 
-# Restart with clean state
+# Mit sauberem Zustand neu starten
 docker compose down -v
 docker compose up -d
 ```
 
-#### Issue: Let's Encrypt certificate fails
-**Symptoms**: Traefik shows 404, SSL certificate errors
-**Solutions**:
+#### Problem: Let's Encrypt-Zertifikat schlägt fehl
+**Symptome**: Traefik zeigt 404, SSL-Zertifikatsfehler
+**Lösungen**:
 ```bash
-# Check DNS is pointing to correct IP
+# Prüfen, ob DNS auf die richtige IP zeigt
 dig +short your-domain.com
 
-# Verify port 80 is reachable from internet
-# Run from local machine:
+# Prüfen, ob Port 80 aus dem Internet erreichbar ist
+# Von lokalem Rechner ausführen:
 curl http://your-domain.com/
 
-# Check Traefik logs
+# Traefik-Logs prüfen
 docker compose logs traefik
 
-# Clear Let's Encrypt cache and retry
+# Let's Encrypt-Cache leeren und erneut versuchen
 rm -rf letsencrypt/acme.json
 docker compose restart traefik
 ```
 
-#### Issue: Twilio webhooks not triggering
-**Symptoms**: n8n workflows don't run on calls/messages
-**Solutions**:
+#### Problem: Twilio-Webhooks werden nicht ausgelöst
+**Symptome**: n8n-Workflows werden bei Anrufen/Nachrichten nicht ausgeführt
+**Lösungen**:
 ```bash
-# Verify webhook URL is correct
-# Should be: https://your-domain.com/webhook/twilio
+# Webhook-URL überprüfen
+# Sollte sein: https://your-domain.com/webhook/twilio
 
-# Check n8n is accessible
+# Prüfen, ob n8n zugänglich ist
 curl https://your-domain.com/
 
-# Verify n8n webhook node is active
-# Open n8n UI → Check workflow status
+# Prüfen, ob der n8n-Webhook-Node aktiv ist
+# n8n UI öffnen → Workflow-Status prüfen
 
-# Check Twilio webhook logs in Twilio console
+# Twilio-Webhook-Logs in der Twilio-Konsole prüfen
 # Monitor → Debugger
 ```
 
-#### Issue: Google Sheets API authentication fails
-**Symptoms**: Workflow fails at Google Sheets node
-**Solutions**:
+#### Problem: Google Sheets API-Authentifizierung schlägt fehl
+**Symptome**: Workflow schlägt am Google Sheets-Node fehl
+**Lösungen**:
 ```bash
-# Verify spreadsheet ID is correct
-# Check in browser URL: docs.google.com/spreadsheets/d/SPREADSHEET_ID
+# Tabellen-ID überprüfen
+# In Browser-URL prüfen: docs.google.com/spreadsheets/d/SPREADSHEET_ID
 
-# Verify sheet name and range
-# Sheet name must match exactly (case-sensitive)
+# Blattname und Bereich überprüfen
+# Blattname muss exakt übereinstimmen (Groß-/Kleinschreibung beachten)
 
-# OAuth2: Check tokens are not expired
-# Regenerate at: https://developers.google.com/oauthplayground/
+# OAuth2: Prüfen, ob Tokens nicht abgelaufen sind
+# Neu generieren unter: https://developers.google.com/oauthplayground/
 
-# Service Account: Verify JSON is valid
-# Test with: echo "$JSON" | python3 -m json.tool
+# Service Account: Prüfen, ob JSON gültig ist
+# Testen mit: echo "$JSON" | python3 -m json.tool
 
-# Verify spreadsheet is shared with correct email
-# OAuth2: Use OAuth client email
-# Service Account: Use "client_email" from JSON
+# Prüfen, ob Tabelle mit der richtigen E-Mail geteilt ist
+# OAuth2: OAuth-Client-E-Mail verwenden
+# Service Account: "client_email" aus JSON verwenden
 ```
 
-#### Issue: Telegram bot not sending messages
-**Symptoms**: No Telegram alerts
-**Solutions**:
+#### Problem: Telegram-Bot sendet keine Nachrichten
+**Symptome**: Keine Telegram-Benachrichtigungen
+**Lösungen**:
 ```bash
-# Verify bot token is correct
-# Send message to bot in Telegram to test
+# Bot-Token überprüfen
+# Nachricht an Bot in Telegram senden, um zu testen
 
-# Verify chat ID is correct
-# Check with @userinfobot
+# Chat ID überprüfen
+# Mit @userinfobot prüfen
 
-# Test API directly:
+# API direkt testen:
 curl -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
   -d "chat_id=${TELEGRAM_CHAT_ID}" \
   -d "text=Test message"
 ```
 
-### Docker Errors
+### Docker-Fehler
 
-#### Container out of memory
-**Symptoms**: OOMKilled, containers restart
-**Solutions**:
+#### Container hat keinen Speicher mehr
+**Symptome**: OOMKilled, Container starten neu
+**Lösungen**:
 ```bash
-# Check memory usage
+# Speichernutzung prüfen
 docker stats
 
-# Increase memory limits in docker-compose.yml
-# Or use docker-compose-low-memory.yml
+# Speicherlimits in docker-compose.yml erhöhen
+# Oder docker-compose-low-memory.yml verwenden
 
-# Reduce n8n execution data retention
-# Set: EXECUTIONS_DATA_MAX_AGE=72 (hours)
+# n8n-Ausführungsdaten-Aufbewahrung reduzieren
+# Setzen Sie: EXECUTIONS_DATA_MAX_AGE=72 (hours)
 ```
 
-#### Container won't stop
-**Solutions**:
+#### Container lässt sich nicht stoppen
+**Lösungen**:
 ```bash
-# Force stop
+# Stoppen erzwingen
 docker compose kill
 
-# Remove containers
+# Container entfernen
 docker compose rm -f
 
-# Clean up system
+# System bereinigen
 docker system prune -a
 ```
 
-#### Volume mounting issues
-**Symptoms**: Permission denied, volume errors
-**Solutions**:
+#### Probleme beim Volume-Mounting
+**Symptome**: Zugriff verweigert, Volume-Fehler
+**Lösungen**:
 ```bash
-# Check volume permissions
+# Volume-Berechtigungen prüfen
 ls -la ./letsencrypt
 ls -la n8n_data
 
-# Fix permissions
+# Berechtigungen korrigieren
 sudo chown -R 1000:1000 ./letsencrypt
 sudo chown -R 1000:1000 ./n8n_data
 
-# Or recreate volumes
+# Oder Volumes neu erstellen
 docker compose down -v
 docker compose up -d
 ```
 
-### n8n Startup Problems
+### n8n Startprobleme
 
-#### n8n UI not loading
-**Solutions**:
+#### n8n UI lädt nicht
+**Lösungen**:
 ```bash
-# Check n8n is healthy
+# Prüfen, ob n8n fehlerfrei ist
 docker compose ps
 
-# Check n8n logs
+# n8n-Logs prüfen
 docker compose logs -f n8n
 
-# Verify Traefik is routing correctly
+# Prüfen, ob Traefik korrekt routet
 docker compose logs traefik
 
-# Check n8n port mapping
+# n8n-Port-Mapping prüfen
 docker port vorzimmerdrache-n8n-1
 ```
 
-#### Workflows not executing
-**Solutions**:
+#### Workflows werden nicht ausgeführt
+**Lösungen**:
 ```bash
-# Verify workflow is active (green toggle)
-# Check execution history in n8n UI
-# Check webhook URL is correct
-# Verify webhook node has "Response Mode: On Last Node"
+# Prüfen, ob Workflow aktiv ist (grüner Schalter)
+# Ausführungsverlauf in der n8n UI prüfen
+# Webhook-URL überprüfen
+# Prüfen, ob der Webhook-Node "Response Mode: On Last Node" hat
 ```
 
-#### Database locked errors
-**Solutions**:
+#### Datenbank-Sperrfehler
+**Lösungen**:
 ```bash
-# SQLite doesn't support concurrent writes well
-# Restart n8n to release locks
+# SQLite unterstützt gleichzeitige Schreibvorgänge nicht gut
+# n8n neu starten, um Sperren freizugeben
 docker compose restart n8n
 
-# Consider switching to PostgreSQL for production
-# See docker-compose-low-memory.yml
+# Für die Produktion den Wechsel zu PostgreSQL in Betracht ziehen
+# Siehe docker-compose-low-memory.yml
 ```
 
-### Traefik SSL Certificate Issues
+### Traefik SSL-Zertifikatsprobleme
 
-#### Certificate not renewing
-**Symptoms**: Certificate expired, SSL warnings
-**Solutions**:
+#### Zertifikat wird nicht erneuert
+**Symptome**: Zertifikat abgelaufen, SSL-Warnungen
+**Lösungen**:
 ```bash
-# Check acme.json
+# acme.json prüfen
 cat letsencrypt/acme.json
 
-# Verify email is correct in .env
+# Prüfen, ob E-Mail in .env korrekt ist
 grep SSL_EMAIL .env
 
-# Manually trigger renewal by restarting Traefik
+# Erneuerung manuell durch Neustart von Traefik auslösen
 docker compose restart traefik
 
-# Clear and retry (last resort)
+# Löschen und erneut versuchen (letzter Ausweg)
 rm -rf letsencrypt/acme.json
 docker compose restart traefik
 ```
 
-#### Rate limiting from Let's Encrypt
-**Symptoms**: Certificate creation fails
-**Solutions**:
+#### Rate Limiting von Let's Encrypt
+**Symptome**: Zertifikatserstellung schlägt fehl
+**Lösungen**:
 ```bash
-# Wait 1 hour (rate limit: 5 certs/domain/hour)
-# Use staging environment for testing
-# Uncomment in docker-compose.yml:
+# 1 Stunde warten (Rate Limit: 5 Zertifikate/Domain/Stunde)
+# Staging-Umgebung zum Testen verwenden
+# In docker-compose.yml auskommentieren:
 # --certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
 ```
 
-### Memory Pressure on 1GB VPS
+### Speicherengpass auf 1GB VPS
 
-#### System slow, high load
-**Solutions**:
+#### System langsam, hohe Last
+**Lösungen**:
 ```bash
-# Check memory usage
+# Speichernutzung prüfen
 free -h
 
-# Check container memory
+# Container-Speicher prüfen
 docker stats
 
-# Restart services to free memory
+# Dienste neu starten, um Speicher freizugeben
 docker compose restart
 
-# Use low-memory compose file
+# Low-Memory Compose-Datei verwenden
 docker compose -f docker-compose-low-memory.yml up -d
 
-# Enable n8n execution pruning
-# Already enabled in default config:
+# n8n-Ausführungsbereinigung aktivieren
+# Bereits in der Standardkonfiguration aktiviert:
 # EXECUTIONS_DATA_PRUNE=true
 # EXECUTIONS_DATA_MAX_AGE=168
 ```
 
 #### OOM (Out of Memory) Killer
-**Symptoms**: Processes killed, system unstable
-**Solutions**:
+**Symptome**: Prozesse beendet, System instabil
+**Lösungen**:
 ```bash
-# Add swap space (1GB recommended)
+# Swap-Speicher hinzufügen (1GB empfohlen)
 sudo fallocate -l 1G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 
-# Reduce n8n memory limit
-# Edit docker-compose.yml:
+# n8n-Speicherlimit reduzieren
+# docker-compose.yml bearbeiten:
 # n8n memory: 512M → 384M
 
-# Disable unnecessary services
-# Example: If not using SMS opt-in, remove webhook endpoints
+# Unnötige Dienste deaktivieren
+# Beispiel: Wenn kein SMS-Opt-in verwendet wird, Webhook-Endpunkte entfernen
 ```
 
-#### Docker eating memory
-**Solutions**:
+#### Docker verbraucht viel Speicher
+**Lösungen**:
 ```bash
-# Clean up unused images
+# Unbenutzte Images bereinigen
 docker image prune -a
 
-# Clean up build cache
+# Build-Cache bereinigen
 docker builder prune
 
-# Remove stopped containers
+# Gestoppte Container entfernen
 docker container prune
 
-# Limit Docker daemon memory
-# Edit /etc/docker/daemon.json:
+# Docker-Daemon-Speicher begrenzen
+# /etc/docker/daemon.json bearbeiten:
 {
   "log-driver": "json-file",
   "log-opts": {
@@ -575,41 +575,41 @@ sudo systemctl restart docker
 
 ---
 
-## Monitoring
+## Überwachung
 
-### Check Logs
+### Logs prüfen
 
-#### All Services
+#### Alle Dienste
 ```bash
-# All logs (last 100 lines)
+# Alle Logs (letzte 100 Zeilen)
 docker compose logs --tail=100
 
-# Follow logs in real-time
+# Logs in Echtzeit verfolgen
 docker compose logs -f
 
-# Specific service
+# Spezifischer Dienst
 docker compose logs -f n8n
 docker compose logs -f traefik
 ```
 
-#### n8n Logs
+#### n8n-Logs
 ```bash
-# Last 50 lines
+# Letzte 50 Zeilen
 docker compose logs --tail=50 n8n
 
-# Since 1 hour ago
+# Seit 1 Stunde
 docker compose logs --since=1h n8n
 
-# Filter for errors
+# Nach Fehlern filtern
 docker compose logs n8n | grep -i error
 ```
 
-#### Traefik Logs
+#### Traefik-Logs
 ```bash
-# Check SSL certificate issues
+# SSL-Zertifikatsprobleme prüfen
 docker compose logs traefik | grep -i certificate
 
-# Check routing issues
+# Routing-Probleme prüfen
 docker compose logs traefik | grep -i router
 ```
 
@@ -617,68 +617,68 @@ docker compose logs traefik | grep -i router
 
 #### n8n Health Check
 ```bash
-# Local check
+# Lokaler Check
 curl http://localhost:5678/healthz
 
-# External check
+# Externer Check
 curl https://your-domain.com/healthz
 ```
 
-#### Container Status
+#### Container-Status
 ```bash
-# Show all containers with health
+# Alle Container mit Health-Status anzeigen
 docker compose ps
 
-# Detailed info
+# Detaillierte Informationen
 docker inspect vorzimmerdrache-n8n-1 | grep -A 10 Health
 ```
 
-### Resource Monitoring
+### Ressourcenüberwachung
 
-#### System Resources
+#### Systemressourcen
 ```bash
-# CPU, memory, disk
+# CPU, Speicher, Festplatte
 htop
 
-# Memory usage
+# Speichernutzung
 free -h
 
-# Disk usage
+# Festplattennutzung
 df -h
 
-# Docker stats
+# Docker-Statistiken
 docker stats
 ```
 
-#### Container-Specific
+#### Container-spezifisch
 ```bash
-# n8n memory usage
+# n8n-Speichernutzung
 docker stats vorzimmerdrache-n8n-1 --no-stream
 
-# Traefik memory usage
+# Traefik-Speichernutzung
 docker stats vorzimmerdrache-traefik-1 --no-stream
 
-# Disk usage of volumes
+# Festplattennutzung der Volumes
 du -sh ./letsencrypt ./n8n_data
 ```
 
-#### Monitor Script (Create `scripts/monitor.sh`)
+#### Monitor-Skript (Erstellen Sie `scripts/monitor.sh`)
 ```bash
 #!/bin/bash
-echo "=== System Memory ==="
+echo "=== System-Speicher ==="
 free -h
 
-echo -e "\n=== Docker Containers ==="
+echo -e "\n=== Docker-Container ==="
 docker compose ps
 
-echo -e "\n=== Docker Stats ==="
+echo -e "\n=== Docker-Statistiken ==="
 docker stats --no-stream
 
-echo -e "\n=== Disk Usage ==="
+echo -e "\n=== Festplattennutzung ==="
 df -h
 
-echo -e "\n=== Recent Logs (Errors) ==="
-docker compose logs --tail=20 | grep -i error || echo "No errors found"
+echo -e "\n=== Aktuelle Logs (Fehler) ==="
+docker compose logs --tail=20 | grep -i error || echo "Keine Fehler gefunden"
 ```
 
 ```bash
@@ -686,95 +686,95 @@ chmod +x scripts/monitor.sh
 ./scripts/monitor.sh
 ```
 
-### Alerts
+### Benachrichtigungen
 
-#### Telegram Alerts (via n8n)
-- Already configured in workflows
-- Alerts sent for: new calls, errors, system issues
-- Check n8n workflow: `workflows/roof-mode.json`
+#### Telegram-Benachrichtigungen (via n8n)
+- Bereits in Workflows konfiguriert
+- Benachrichtigungen gesendet für: neue Anrufe, Fehler, Systemprobleme
+- n8n-Workflow prüfen: `workflows/roof-mode.json`
 
-#### n8n Internal Monitoring
-- Access n8n UI → Settings → Monitoring
-- Enable workflow execution tracking
-- Set up email notifications (optional)
+#### n8n Interne Überwachung
+- n8n UI aufrufen → Einstellungen → Überwachung
+- Workflow-Ausführungsverfolgung aktivieren
+- E-Mail-Benachrichtigungen einrichten (optional)
 
 ---
 
-## Security Notes
+## Sicherheitshinweise
 
-### Traefik API Security
+### Traefik API-Sicherheit
 
-#### Dashboard Exposure (Default: Disabled)
+#### Dashboard-Exposition (Standard: Deaktiviert)
 ```yaml
-# Traefik dashboard is NOT exposed by default
-# To enable (NOT recommended on production):
-# Add to docker-compose.yml traefik command:
+# Traefik-Dashboard ist standardmäßig NICHT exponiert
+# Zum Aktivieren (NICHT empfohlen in der Produktion):
+# Zu docker-compose.yml Traefik-Befehl hinzufügen:
 # --api.insecure=true
 # --api.dashboard=true
 ```
 
-#### Docker Socket Security
+#### Docker Socket-Sicherheit
 ```yaml
-# Docker socket is mounted read-only
+# Docker-Socket ist schreibgeschützt gemountet
 # volumes:
 #   - "/var/run/docker.sock:/var/run/docker.sock:ro"
-# Prevents container from modifying Docker config
+# Verhindert, dass der Container die Docker-Konfiguration ändert
 ```
 
 #### API Rate Limiting
 ```bash
-# Traefik doesn't have built-in rate limiting
-# Use n8n workflow to limit webhook processing
-# Example: Max 100 calls/hour per phone number
+# Traefik hat kein integriertes Rate Limiting
+# n8n-Workflow verwenden, um die Webhook-Verarbeitung zu begrenzen
+# Beispiel: Max. 100 Anrufe/Stunde pro Telefonnummer
 ```
 
-### Webhook Validation
+### Webhook-Validierung
 
-#### Twilio Signature Validation
+#### Twilio Signatur-Validierung
 ```bash
-# n8n Twilio node validates signatures automatically
-# Ensure TWILIO_AUTH_TOKEN is set correctly
-# Verify webhook URL matches Twilio configuration
+# n8n Twilio-Node validiert Signaturen automatisch
+# Sicherstellen, dass TWILIO_AUTH_TOKEN korrekt gesetzt ist
+# Prüfen, ob Webhook-URL mit Twilio-Konfiguration übereinstimmt
 ```
 
-#### Custom Webhook Security
+#### Benutzerdefinierte Webhook-Sicherheit
 ```bash
-# For custom webhooks, add API key validation
-# In n8n workflow: Add "Set" node with check:
+# Für benutzerdefinierte Webhooks API-Schlüssel-Validierung hinzufügen
+# Im n8n-Workflow: "Set"-Node mit Prüfung hinzufügen:
 # IF $webhook.headers["x-api-key"] !== $env.WEBHOOK_API_KEY
-#   THEN reject request
+#   THEN Anfrage ablehnen
 ```
 
-#### HTTPS Only
+#### Nur HTTPS
 ```bash
-# All webhooks should use HTTPS
-# n8n configured with N8N_PROTOCOL=https
-# Traefik redirects HTTP to HTTPS automatically
+# Alle Webhooks sollten HTTPS verwenden
+# n8n mit N8N_PROTOCOL=https konfiguriert
+# Traefik leitet HTTP automatisch auf HTTPS um
 ```
 
-### Volume Backups
+### Volume-Backups
 
-#### n8n Data Backup
+#### n8n Daten-Backup
 ```bash
-# Create backup script: scripts/backup.sh
+# Backup-Skript erstellen: scripts/backup.sh
 #!/bin/bash
 BACKUP_DIR="/backup/n8n"
 DATE=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
-# Backup n8n data
+# n8n-Daten sichern
 docker run --rm \
   -v vorzimmerdrache_n8n_data:/data \
   -v $BACKUP_DIR:/backup \
   alpine tar czf /backup/n8n_data_$DATE.tar.gz -C /data .
 
-# Backup letsencrypt
+# Letsencrypt sichern
 tar czf $BACKUP_DIR/letsencrypt_$DATE.tar.gz ./letsencrypt
 
-# Keep last 7 days
+# Letzte 7 Tage aufbewahren
 find $BACKUP_DIR -name "*.tar.gz" -mtime +7 -delete
 
-echo "Backup completed: n8n_data_$DATE.tar.gz"
+echo "Backup abgeschlossen: n8n_data_$DATE.tar.gz"
 ```
 
 ```bash
@@ -782,42 +782,42 @@ chmod +x scripts/backup.sh
 ./scripts/backup.sh
 ```
 
-#### Automated Backups (Cron)
+#### Automatisierte Backups (Cron)
 ```bash
-# Add to crontab (daily at 2 AM):
+# Zu Crontab hinzufügen (täglich um 2 Uhr morgens):
 crontab -e
 
-# Add line:
+# Zeile hinzufügen:
 0 2 * * * /path/to/vorzimmerdrache/scripts/backup.sh
 ```
 
-#### Restore from Backup
+#### Wiederherstellung aus Backup
 ```bash
-# Restore n8n data
+# n8n-Daten wiederherstellen
 docker run --rm \
   -v vorzimmerdrache_n8n_data:/data \
   -v /backup/n8n:/backup \
   alpine tar xzf /backup/n8n_data_20240126_020000.tar.gz -C /data
 
-# Restore letsencrypt
+# Letsencrypt wiederherstellen
 tar xzf /backup/letsencrypt_20240126_020000.tar.gz -C ./
 
-# Restart services
+# Dienste neu starten
 docker compose restart
 ```
 
-#### Backup to Remote (Optional)
+#### Backup auf Remote (Optional)
 ```bash
-# Use rclone to backup to cloud storage
+# rclone verwenden, um in Cloud-Speicher zu sichern
 rclone copy /backup/n8n remote:backups/vorzimmerdrache/n8n
 rclone copy /backup/letsencrypt remote:backups/vorzimmerdrache/letsencrypt
 ```
 
-### Additional Security Measures
+### Zusätzliche Sicherheitsmaßnahmen
 
-#### Firewall Configuration
+#### Firewall-Konfiguration
 ```bash
-# Allow only necessary ports
+# Nur notwendige Ports zulassen
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo ufw allow 22/tcp    # SSH
@@ -826,99 +826,99 @@ sudo ufw allow 443/tcp   # HTTPS
 sudo ufw enable
 ```
 
-#### SSH Security
+#### SSH-Sicherheit
 ```bash
-# Disable password authentication
-# Edit /etc/ssh/sshd_config:
+# Passwort-Authentifizierung deaktivieren
+# /etc/ssh/sshd_config bearbeiten:
 PasswordAuthentication no
 PubkeyAuthentication yes
 
-# Change default SSH port
+# Standard-SSH-Port ändern
 Port 2222
 
-# Restart SSH
+# SSH neu starten
 sudo systemctl restart sshd
 ```
 
-#### Regular Updates
+#### Regelmäßige Updates
 ```bash
-# Update system packages
+# Systempakete aktualisieren
 sudo apt update && sudo apt upgrade -y
 
-# Update Docker
+# Docker aktualisieren
 curl -fsSL https://get.docker.com | sh
 
-# Update Docker images
+# Docker-Images aktualisieren
 docker compose pull
 docker compose up -d
 ```
 
-#### Secret Management
+#### Geheimnisverwaltung
 ```bash
-# Never commit .env to git
-# Add to .gitignore:
+# .env niemals in Git committen
+# Zu .gitignore hinzufügen:
 echo ".env" >> .gitignore
 
-# Use environment-specific .env files
-# .env.production for production
-# .env.staging for staging
+# Umgebungsspezifische .env-Dateien verwenden
+# .env.production für die Produktion
+# .env.staging für Staging
 
-# Rotate secrets regularly
-# Every 90 days:
-# - Generate new N8N_ENCRYPTION_KEY
-# - Rotate Twilio Auth Token
-# - Rotate Telegram Bot Token
+# Geheimnisse regelmäßig rotieren
+# Alle 90 Tage:
+# - Neuen N8N_ENCRYPTION_KEY generieren
+# - Twilio Auth Token rotieren
+# - Telegram Bot Token rotieren
 ```
 
 ---
 
-## Quick Reference
+## Kurzübersicht
 
-### Useful Commands
+### Nützliche Befehle
 ```bash
-# Start services
+# Dienste starten
 docker compose up -d
 
-# Stop services
+# Dienste stoppen
 docker compose down
 
-# Restart services
+# Dienste neu starten
 docker compose restart
 
-# View logs
+# Logs anzeigen
 docker compose logs -f
 
-# Check status
+# Status prüfen
 docker compose ps
 
-# Update services
+# Dienste aktualisieren
 docker compose pull && docker compose up -d
 
 # Backup
 ./scripts/backup.sh
 
-# Monitor
+# Überwachen
 ./scripts/monitor.sh
 ```
 
-### File Locations
+### Dateispeicherorte
 ```bash
-# Main config
-.env                    # Environment variables
-docker-compose.yml      # Docker services
+# Hauptkonfiguration
+.env                    # Umgebungsvariablen
+docker-compose.yml      # Docker-Dienste
 
-# Data
-letsencrypt/            # SSL certificates
-n8n_data/               # n8n database and files
+# Daten
+letsencrypt/            # SSL-Zertifikate
+n8n_data/               # n8n-Datenbank und -Dateien
 
-# Scripts
-scripts/deploy-1gb.sh   # Deployment script
-scripts/backup.sh       # Backup script
-scripts/monitor.sh      # Monitoring script
+# Skripte
+scripts/deploy-1gb.sh   # Bereitstellungsskript
+scripts/backup.sh       # Backup-Skript
+scripts/monitor.sh      # Überwachungsskript
 
 # Workflows
-workflows/roof-mode.json      # Main workflow
-workflows/sms-opt-in.json     # SMS opt-in workflow
+workflows/roof-mode.json      # Haupt-Workflow
+workflows/sms-opt-in.json     # SMS Opt-in Workflow
 ```
 
 ### URLs
@@ -928,7 +928,7 @@ n8n Webhook:     https://your-domain.com/webhook/twilio
 SMS Opt-in:      https://your-domain.com/webhook/sms-response
 ```
 
-### Support Resources
+### Support-Ressourcen
 - n8n Docs: https://docs.n8n.io
 - Twilio Docs: https://www.twilio.com/docs
 - Traefik Docs: https://doc.traefik.io/traefik
