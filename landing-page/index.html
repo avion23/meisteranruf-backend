@@ -3,6 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LeadRettet - Automatisierte Lead-Qualifizierung für Handwerker. Nie wieder Aufträge verlieren durch verpasste Anrufe. WhatsApp Automation ab 6,15 €/Monat.">
+    <meta name="keywords" content="Lead Qualifizierung, Handwerker, WhatsApp Automation, Twilio, Kundenrückruf, Dachdecker, Elektriker">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="canonical" href="https://vorzimmerdrache.pages.dev/">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="LeadRettet - Nie wieder Leads verlieren">
+    <meta property="og:description" content="Ihr automatisierter Anruf-Assistent antwortet sofort auf verpasste Anrufe und qualifiziert Kunden über WhatsApp.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vorzimmerdrache.pages.dev/">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="LeadRettet - Nie wieder Leads verlieren">
+    <meta name="twitter:description" content="Automatisierte Lead-Qualifizierung für Handwerker. Ab 6,15 €/Monat.">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "LeadRettet",
+      "description": "Automatisierte Lead-Qualifizierung für Handwerker",
+      "url": "https://vorzimmerdrache.pages.dev",
+      "telephone": "+49-177-7250851",
+      "email": "info@ecolinda.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Schleidener Str. 6",
+        "addressLocality": "Köln",
+        "postalCode": "50937",
+        "addressCountry": "DE"
+      },
+      "priceRange": "€",
+      "areaServed": "DE"
+    }
+    </script>
+    
     <title>LeadRettet - Nie wieder Leads verlieren</title>
     <style>
         * {
@@ -686,14 +724,60 @@
             font-size: 0.9rem;
         }
         
+        /* Mobile Navigation */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 1000;
+        }
+        
+        .skip-link:focus {
+            top: 0;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2rem;
             }
             
+            .nav-toggle {
+                display: block;
+            }
+            
             .nav-links {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column;
+                padding: 1rem;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                gap: 1rem;
+            }
+            
+            .nav-links.active {
+                display: flex;
+            }
+            
+            nav {
+                position: relative;
             }
             
             .comparison-item {
@@ -720,11 +804,14 @@
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+    
     <!-- Navigation -->
-    <nav>
+    <nav aria-label="Hauptnavigation">
         <div class="container">
-            <div class="logo">LeadRettet</div>
-            <ul class="nav-links">
+            <a href="#" class="logo" style="text-decoration: none;">LeadRettet</a>
+            <button class="nav-toggle" aria-label="Menü öffnen" onclick="toggleNav()">☰</button>
+            <ul class="nav-links" id="nav-links">
                 <li><a href="#problem">Problem</a></li>
                 <li><a href="#loesung">Lösung</a></li>
                 <li><a href="#roi">ROI-Rechner</a></li>
@@ -733,6 +820,8 @@
             </ul>
         </div>
     </nav>
+    
+    <main id="main-content">
 
     <!-- Hero -->
     <section class="hero">
@@ -1051,26 +1140,27 @@
                     </div>
                 </div>
                 <div class="contact-form">
-                    <form onsubmit="event.preventDefault(); alert('Danke für Ihre Anfrage! Wir melden uns innerhalb von 24 Stunden bei Ihnen.');">
+                    <form id="contact-form" aria-labelledby="contact-heading">
+                        <h3 id="contact-heading" style="margin-bottom: 1.5rem; color: var(--dark);">Kontaktformular</h3>
                         <div class="form-group">
-                            <label>Ihr Name *</label>
-                            <input type="text" required placeholder="Max Mustermann">
+                            <label for="name">Ihr Name <span aria-label="erforderlich">*</span></label>
+                            <input type="text" id="name" name="name" required placeholder="Max Mustermann" aria-required="true">
                         </div>
                         <div class="form-group">
-                            <label>Firma *</label>
-                            <input type="text" required placeholder="Musterbau GmbH">
+                            <label for="company">Firma <span aria-label="erforderlich">*</span></label>
+                            <input type="text" id="company" name="company" required placeholder="Musterbau GmbH" aria-required="true">
                         </div>
                         <div class="form-group">
-                            <label>E-Mail *</label>
-                            <input type="email" required placeholder="max@firma.de">
+                            <label for="email">E-Mail <span aria-label="erforderlich">*</span></label>
+                            <input type="email" id="email" name="email" required placeholder="max@firma.de" aria-required="true">
                         </div>
                         <div class="form-group">
-                            <label>Telefon</label>
-                            <input type="tel" placeholder="+49 123 456789">
+                            <label for="phone">Telefon</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+49 123 456789">
                         </div>
                         <div class="form-group">
-                            <label>Ihre Nachricht (optional)</label>
-                            <textarea rows="3" placeholder="Wie können wir helfen?"></textarea>
+                            <label for="message">Ihre Nachricht (optional)</label>
+                            <textarea id="message" name="message" rows="3" placeholder="Wie können wir helfen?"></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary" style="width: 100%;">Jetzt unverbindlich anfragen</button>
                     </form>
@@ -1101,15 +1191,15 @@
                     <ul>
                         <li><a href="#kontakt">Kontakt</a></li>
                         <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#">Datenschutz</a></li>
-                        <li><a href="#">Impressum</a></li>
+                        <li><a href="datenschutz.html">Datenschutz</a></li>
+                        <li><a href="impressum.html">Impressum</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
                     <h4>Kontakt</h4>
                     <ul>
-                        <li>hello@leadrettet.de</li>
-                        <li>+49 123 456 7890</li>
+                        <li>info@ecolinda.com</li>
+                        <li>+49 177 7250 851</li>
                         <li>Köln, NRW</li>
                     </ul>
                 </div>
@@ -1121,38 +1211,62 @@
     </footer>
 
     <script>
+        // Mobile navigation toggle
+        function toggleNav() {
+            const navLinks = document.getElementById('nav-links');
+            navLinks.classList.toggle('active');
+        }
+        
+        // Close mobile nav when clicking a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('nav-links').classList.remove('active');
+            });
+        });
+        
+        // Calculator with error handling
         function updateCalculator() {
-            const callsPerWeek = parseInt(document.getElementById('callsPerWeek').value);
-            const missedPercent = parseInt(document.getElementById('missedPercent').value);
-            const orderValue = parseInt(document.getElementById('orderValue').value) || 800;
-            const packageCost = parseFloat(document.getElementById('package').value);
-            
-            // Update display values
-            document.getElementById('callsValue').textContent = callsPerWeek;
-            document.getElementById('missedValue').textContent = missedPercent;
-            
-            // Calculate metrics
-            const missedCalls = Math.round(callsPerWeek * (missedPercent / 100));
-            const lostOrders = Math.round(missedCalls * 0.7); // 70% of missed calls are lost orders
-            const revenueLoss = lostOrders * orderValue * 4.3; // 4.3 weeks per month
-            const savedRevenue = revenueLoss * 0.6; // 60% recovery rate with LeadRettet
-            const netBenefit = savedRevenue - packageCost;
-            const roiPercent = packageCost > 0 ? ((netBenefit / packageCost) * 100).toFixed(0) : 0;
-            
-            // Update results
-            document.getElementById('missedCalls').textContent = missedCalls;
-            document.getElementById('lostOrders').textContent = lostOrders;
-            document.getElementById('revenueLoss').textContent = revenueLoss.toLocaleString('de-DE') + ' €';
-            document.getElementById('savedRevenue').textContent = savedRevenue.toLocaleString('de-DE') + ' €';
-            document.getElementById('netBenefit').textContent = (netBenefit >= 0 ? '+' : '') + netBenefit.toLocaleString('de-DE') + ' €';
-            document.getElementById('roiPercent').textContent = roiPercent + '%';
-            
-            // Color code the net benefit
-            const netBenefitEl = document.getElementById('netBenefit');
-            if (netBenefit >= 0) {
-                netBenefitEl.style.color = '#10b981';
-            } else {
-                netBenefitEl.style.color = '#ef4444';
+            try {
+                const callsPerWeek = parseInt(document.getElementById('callsPerWeek').value) || 0;
+                const missedPercent = parseInt(document.getElementById('missedPercent').value) || 0;
+                const orderValue = parseInt(document.getElementById('orderValue').value) || 800;
+                const packageCost = parseFloat(document.getElementById('package').value) || 0;
+                
+                // Validate inputs
+                if (callsPerWeek < 0 || missedPercent < 0 || orderValue < 0) {
+                    console.warn('Negative values detected in calculator');
+                    return;
+                }
+                
+                // Update display values
+                document.getElementById('callsValue').textContent = callsPerWeek;
+                document.getElementById('missedValue').textContent = missedPercent;
+                
+                // Calculate metrics
+                const missedCalls = Math.round(callsPerWeek * (missedPercent / 100));
+                const lostOrders = Math.round(missedCalls * 0.7);
+                const revenueLoss = lostOrders * orderValue * 4.3;
+                const savedRevenue = revenueLoss * 0.6;
+                const netBenefit = savedRevenue - packageCost;
+                const roiPercent = packageCost > 0 ? ((netBenefit / packageCost) * 100).toFixed(0) : 0;
+                
+                // Update results
+                document.getElementById('missedCalls').textContent = missedCalls;
+                document.getElementById('lostOrders').textContent = lostOrders;
+                document.getElementById('revenueLoss').textContent = revenueLoss.toLocaleString('de-DE') + ' €';
+                document.getElementById('savedRevenue').textContent = savedRevenue.toLocaleString('de-DE') + ' €';
+                document.getElementById('netBenefit').textContent = (netBenefit >= 0 ? '+' : '') + netBenefit.toLocaleString('de-DE') + ' €';
+                document.getElementById('roiPercent').textContent = roiPercent + '%';
+                
+                // Color code the net benefit
+                const netBenefitEl = document.getElementById('netBenefit');
+                if (netBenefit >= 0) {
+                    netBenefitEl.style.color = '#10b981';
+                } else {
+                    netBenefitEl.style.color = '#ef4444';
+                }
+            } catch (error) {
+                console.error('Calculator error:', error);
             }
         }
         
@@ -1171,6 +1285,23 @@
                     });
                 }
             });
+        });
+        
+        // Form submission handler
+        document.getElementById('contact-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            // Log form data (replace with actual submission)
+            console.log('Form submitted:', data);
+            
+            // Show success message
+            alert('Danke für Ihre Anfrage! Wir melden uns innerhalb von 24 Stunden bei Ihnen.');
+            
+            // Reset form
+            this.reset();
         });
     </script>
 </body>
