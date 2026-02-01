@@ -20,17 +20,7 @@ ssh "$VPS_HOST" << 'REMOTE_SCRIPT'
         echo "✅ Backup created"
     fi
     
-    # Add missing variables if not present
-    if ! grep -q "ENABLE_3_QUESTION_FLOW" "$ENV_FILE"; then
-        echo "" >> "$ENV_FILE"
-        echo "# 3-Question Flow Feature Flag" >> "$ENV_FILE"
-        echo "ENABLE_3_QUESTION_FLOW=true" >> "$ENV_FILE"
-        echo "✅ Added ENABLE_3_QUESTION_FLOW=true"
-    else
-        # Update existing to true
-        sed -i 's/ENABLE_3_QUESTION_FLOW=.*/ENABLE_3_QUESTION_FLOW=true/' "$ENV_FILE"
-        echo "✅ Updated ENABLE_3_QUESTION_FLOW=true"
-    fi
+    # 3-Question flow is mandatory (DSGVO compliant) - always enabled, no feature flag needed
     
     # Add Google Sheets Document ID if missing (using SPREADSHEET_ID)
     if ! grep -q "GOOGLE_SHEETS_DOCUMENT_ID" "$ENV_FILE"; then
