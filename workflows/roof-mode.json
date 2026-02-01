@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require('crypto');\nconst authToken = $env.TWILIO_AUTH_TOKEN;\nconst headers = $input.first().json.headers || {};\nconst signature = headers['x-twilio-signature'] || headers['X-Twilio-Signature'];\nconst body = $input.first().json.body || {};\n\nconst params = new URLSearchParams();\nfor (const [key, value] of Object.entries(body)) {\n  params.append(key, value);\n}\nconst payload = params.toString();\nconst webhookUrl = `https://${$env.DOMAIN}/webhook/incoming-call`;\nconst expected = crypto.createHmac('sha1', authToken)\n  .update(webhookUrl + payload)\n  .digest('base64');\n\nif (signature !== expected) {\n  return [{ json: { error: 'Invalid signature', statusCode: 403 } }];\n}\nreturn [{ json: body, valid: true }];"
+        "jsCode": "const crypto = require('crypto');\nconst authToken = $env.TWILIO_AUTH_TOKEN;\nconst headers = $input.first().json.headers || {};\nconst signature = headers['x-twilio-signature'] || headers['X-Twilio-Signature'];\nconst body = $input.first().json.body || {};\n\n// Sort parameters alphabetically (Twilio requirement)\nconst sortedKeys = Object.keys(body).sort();\nconst payload = sortedKeys.map(key => key + body[key]).join('');\nconst webhookUrl = `https://${$env.DOMAIN}/webhook/incoming-call`;\nconst expected = crypto.createHmac('sha1', authToken)\n  .update(webhookUrl + payload)\n  .digest('base64');\n\nif (!crypto.timingSafeEqual(Buffer.from(signature || ''), Buffer.from(expected))) {\n  return [{ json: { error: 'Invalid signature', statusCode: 403 } }];\n}\nreturn [{ json: body, valid: true }];"
       },
       "id": "validate-signature",
       "name": "Code - Validate Twilio Signature",
@@ -92,7 +92,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const phone = $input.first().json.body.From;\nlet p = phone.replace(/[^0-9]/g, '');\nif (p.startsWith('0049')) {\n  p = '+49' + p.substring(4);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (p.startsWith('49') && p.length >= 12 && p.length <= 13) {\n  p = '+49' + p.substring(2);\n} else if (!p.startsWith('+')) {\n  p = '+49' + p;\n}\nconst mobilePrefixes = ['150', '151', '152', '155', '156', '157', '159', '160', '161', '162', '163', '165', '166', '167', '168', '169', '170', '171', '172', '173', '174', '175', '176', '177', '178', '179'];\nconst prefix = p.substring(3, 6);\nreturn [{ json: { phone: p, is_mobile: mobilePrefixes.includes(prefix) } }];"
+        "jsCode": "const phone = $input.first().json.body.From || '';\nlet p = phone.replace(/[^0-9+]/g, '');\n\n// Already E.164 format (+country code)\nif (p.startsWith('+')) {\n  // Keep international numbers as-is (+43, +41, +1, etc.)\n} else if (p.startsWith('00')) {\n  // Convert 0049... to +49...\n  p = '+' + p.substring(2);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  // German local format -> add +49\n  p = '+49' + p.substring(1);\n} else if (!p.startsWith('+') && p.length > 0) {\n  // Assume German number if no prefix\n  p = '+49' + p;\n}\n\n// Check if mobile (German prefixes + international support)\nconst mobilePrefixes = ['150', '151', '152', '155', '156', '157', '159', '160', '161', '162', '163', '165', '166', '167', '168', '169', '170', '171', '172', '173', '174', '175', '176', '177', '178', '179'];\nconst prefix = p.startsWith('+49') ? p.substring(3, 6) : null;\nconst is_mobile = prefix ? mobilePrefixes.includes(prefix) : true; // Assume mobile for international\n\nreturn [{ json: { phone: p, is_mobile } }];"
       },
       "id": "normalize-phone",
       "name": "Code - Normalize Phone",
@@ -153,7 +153,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const sheetsData = $node['Google Sheets - Lookup Customer'].first().json;\nconst rows = sheetsData?.values || [];\nlet knownCustomer = null;\nfor (let i = 0; i < rows.length; i++) {\n  if (rows[i][0] === $json.phone) {\n    knownCustomer = rows[i];\n    break;\n  }\n}\nreturn [{ json: { phone: $json.phone, knownCustomer } }];"
+        "jsCode": "const sheetsData = $node['Google Sheets - Lookup Customer'].first().json;\nconst rows = sheetsData?.values || [];\n\n// Header-basierte Suche (robust gegen Spaltenänderungen)\nif (rows.length === 0) {\n  return [{ json: { phone: $json.phone, knownCustomer: null } }];\n}\n\nconst headers = rows[0];\nconst phoneIndex = headers.indexOf('Phone');\nconst optInIndex = headers.indexOf('OptIn_Status');\n\nif (phoneIndex === -1) {\n  return [{ json: { phone: $json.phone, knownCustomer: null, error: 'Phone column not found' } }];\n}\n\nlet knownCustomer = null;\nfor (let i = 1; i < rows.length; i++) {\n  if (rows[i][phoneIndex] === $json.phone) {\n    knownCustomer = {\n      row: rows[i],\n      phone: rows[i][phoneIndex],\n      optInStatus: optInIndex !== -1 ? rows[i][optInIndex] : null,\n      rowIndex: i\n    };\n    break;\n  }\n}\n\nreturn [{ json: { phone: $json.phone, knownCustomer } }];"
       },
       "id": "check-customer-known",
       "name": "Code - Check Customer Known",

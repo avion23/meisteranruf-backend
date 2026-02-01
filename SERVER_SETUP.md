@@ -37,6 +37,53 @@
 
 ## Schnelle Bereitstellung
 
+### Deployment-Ablauf (Übersicht)
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant S as Server (VPS)
+    participant D as Docker
+    participant T as Traefik
+    participant N as n8n
+    
+    U->>S: SSH verbinden
+    U->>S: Repository klonen
+    U->>S: .env konfigurieren
+    
+    Note over U,S: Vorbereitung: ~5 Minuten
+    
+    U->>S: deploy-1gb.sh ausführen
+    
+    S->>D: Docker installieren (falls nötig)
+    S->>D: Docker Compose starten
+    
+    par Parallel-Start
+        D->>T: Traefik Container starten
+        D->>N: n8n Container starten
+    end
+    
+    T->>T: SSL-Zertifikat anfordern
+    T->>T: HTTPS-Routing konfigurieren
+    
+    N->>N: SQLite DB initialisieren
+    N->>N: Workflows importieren
+    
+    Note over T,N: Container-Start: ~2 Minuten
+    
+    T-->>U: HTTPS-URL verfügbar
+    N-->>U: n8n UI erreichbar
+    
+    U->>N: API-Credentials einrichten
+    U->>T: Twilio Webhooks konfigurieren
+    
+    Note over U,N: Finale Konfiguration: ~25 Minuten
+    
+    N-->>U: System einsatzbereit
+```
+
+### 1. Repository klonen
+
 ### 1. Repository klonen
 ```bash
 git clone <your-repo-url> vorzimmerdrache
@@ -65,6 +112,28 @@ Aktualisieren Sie diese wichtigen Variablen:
 ```bash
 chmod +x scripts/deploy-1gb.sh
 ./scripts/deploy-1gb.sh
+```
+
+**WICHTIG: Swap-Datei erstellen (empfohlen für 1GB VPS)**
+
+Das Deploy-Skript erstellt automatisch eine 1GB Swap-Datei, um Out-of-Memory (OOM) Fehler zu verhindern. Manuell kannst du dies mit folgenden Befehlen tun:
+
+```bash
+# Swap-Datei erstellen (1GB)
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+# Swap permanent machen
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+
+# Swap-Nutzung optimieren
+echo 'vm.swappiness=10' | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p
+
+# Prüfen
+free -h
 ```
 
 ### 4. Auf n8n zugreifen
@@ -573,6 +642,31 @@ docker container prune
 sudo systemctl restart docker
 ```
 
+**Log-Rotation konfigurieren (automatisch im Deploy-Skript):**
+
+```bash
+# Prüfen, ob daemon.json existiert
+cat /etc/docker/daemon.json
+
+# Falls nicht vorhanden, erstellen:
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json > /dev/null <<EOF
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+
+# Docker neu starten
+sudo systemctl restart docker
+
+# Prüfen
+docker info | grep -A 10 "Logging Driver"
+```
+
 ---
 
 ## Überwachung
@@ -698,6 +792,70 @@ chmod +x scripts/monitor.sh
 - Workflow-Ausführungsverfolgung aktivieren
 - E-Mail-Benachrichtigungen einrichten (optional)
 
+#### Twilio-Guthaben-Monitoring (Empfohlen)
+
+**Automatische Warnung bei niedrigem Guthaben:**
+
+Erstelle einen n8n-Workflow, der stündlich das Twilio-Guthaben prüft:
+
+```json
+{
+  "name": "Twilio Balance Monitor",
+  "nodes": [
+    {
+      "type": "cron",
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 1,
+              "unit": "hours"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "httpRequest",
+      "parameters": {
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Balance.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "twilioApi",
+        "options": {}
+      }
+    },
+    {
+      "type": "if",
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.balance.amount }}",
+              "operation": "smaller",
+              "value2": "5.00"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "telegram",
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "⚠️ Twilio-Guthaben niedrig: {{ $json.balance.amount }} {{ $json.balance.currency }}. Bitte aufladen!"
+      }
+    }
+  ]
+}
+```
+
+**Twilio Auto-Recharge einrichten:**
+1. Twilio Console → Billing → Payment Methods
+2. "Auto Recharge" aktivieren
+3. Schwellenwert: €5.00
+4. Aufladebetrag: €20.00
+
 ---
 
 ## Sicherheitshinweise
@@ -751,6 +909,31 @@ chmod +x scripts/monitor.sh
 # n8n mit N8N_PROTOCOL=https konfiguriert
 # Traefik leitet HTTP automatisch auf HTTPS um
 ```
+
+### System-Ein/Aus-Schalter (Optional)
+
+Manchmal will der Handwerker nicht gestört werden. Hier ist ein einfacher Ein/Aus-Schalter:
+
+**Methode 1: Google Sheets Status-Check**
+
+1. Erstelle ein Blatt `Global_Settings` in Google Sheets
+2. Füge eine Zelle `A1` mit dem Wert `Status` hinzu
+3. Füge eine Zelle `B1` mit dem Wert `Active` oder `Inactive` hinzu
+4. Füge einen Node am Anfang jedes Workflows hinzu:
+   - Typ: "Google Sheets"
+   - Operation: "Lookup"
+   - Sheet: `Global_Settings`
+   - Range: `A1:B1`
+   - If Status != "Active": Stop workflow
+
+**Methode 2: Twilio-Nummer vorübergehend deaktivieren**
+
+1. Twilio Console → Phone Numbers
+2. Deine Nummer auswählen
+3. Voice URL auf leer setzen oder auf eine einfache Ansage umstellen
+4. "Save" klicken
+
+---
 
 ### Volume-Backups
 

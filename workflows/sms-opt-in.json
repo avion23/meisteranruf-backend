@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require('crypto');\nconst authToken = $env.TWILIO_AUTH_TOKEN;\nconst headers = $input.first().json.headers || {};\nconst signature = headers['x-twilio-signature'] || headers['X-Twilio-Signature'];\nconst body = $input.first().json.body || {};\n\nconst params = new URLSearchParams();\nfor (const [key, value] of Object.entries(body)) {\n  params.append(key, value);\n}\nconst payload = params.toString();\nconst webhookUrl = `https://${$env.DOMAIN}/webhook/sms-response`;\nconst expected = crypto.createHmac('sha1', authToken)\n  .update(webhookUrl + payload)\n  .digest('base64');\n\nif (signature !== expected) {\n  return [{ json: { error: 'Invalid signature', statusCode: 403 } }];\n}\nreturn [{ json: body, valid: true }];"
+        "jsCode": "const crypto = require('crypto');\nconst authToken = $env.TWILIO_AUTH_TOKEN;\nconst headers = $input.first().json.headers || {};\nconst signature = headers['x-twilio-signature'] || headers['X-Twilio-Signature'];\nconst body = $input.first().json.body || {};\n\n// Sort parameters alphabetically (Twilio requirement)\nconst sortedKeys = Object.keys(body).sort();\nconst payload = sortedKeys.map(key => key + body[key]).join('');\nconst webhookUrl = `https://${$env.DOMAIN}/webhook/sms-response`;\nconst expected = crypto.createHmac('sha1', authToken)\n  .update(webhookUrl + payload)\n  .digest('base64');\n\nif (!crypto.timingSafeEqual(Buffer.from(signature || ''), Buffer.from(expected))) {\n  return [{ json: { error: 'Invalid signature', statusCode: 403 } }];\n}\nreturn [{ json: body, valid: true }];"
       },
       "id": "validate-signature",
       "name": "Code - Validate Twilio Signature",
@@ -92,7 +92,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body.Body || '';\nconst phone = $input.first().json.body.From || '';\nconst normalizedResponse = body.trim().toLowerCase();\nconst isValidResponse = normalizedResponse === 'ja';\nlet p = phone.replace(/[^0-9]/g, '');\nif (p.startsWith('0049')) {\n  p = '+49' + p.substring(4);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (p.startsWith('49') && p.length >= 12 && p.length <= 13) {\n  p = '+49' + p.substring(2);\n} else if (!p.startsWith('+')) {\n  p = '+49' + p;\n}\nreturn [{ json: { phone: p, response: body, isValidResponse } }];"
+        "jsCode": "const body = $input.first().json.body.Body || '';\nconst phone = $input.first().json.body.From || '';\nconst normalizedResponse = body.trim().toLowerCase();\n\n// More flexible response detection\nconst affirmativePatterns = ['ja', 'yes', 'ok', 'okay', 'jaa', 'klar', 'gerne'];\nconst isValidResponse = affirmativePatterns.some(pattern => normalizedResponse.includes(pattern));\n\n// Phone normalization (international support)\nlet p = phone.replace(/[^0-9+]/g, '');\nif (p.startsWith('+')) {\n  // Keep international format\n} else if (p.startsWith('00')) {\n  p = '+' + p.substring(2);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (!p.startsWith('+') && p.length > 0) {\n  p = '+49' + p;\n}\n\nreturn [{ json: { phone: p, response: body, isValidResponse } }];"
       },
       "id": "parse-sms",
       "name": "Code - Parse SMS",

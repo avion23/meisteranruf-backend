@@ -1,5 +1,24 @@
 # Vorzimmerdrache
 
+## Quick Start (5 Minuten)
+
+1. **Repository klonen & Server starten:**
+   ```bash
+   git clone <repo> vorzimmerdrache
+   cd vorzimmerdrache
+   cp .env.example .env
+   nano .env  # Platzhalter ausfüllen
+   ./scripts/deploy-1gb.sh
+   ```
+
+2. **n8n öffnen:** `https://<DEINE-DOMAIN>/`
+3. **Workflows aktivieren:** "Roof-Mode" & "SMS Opt-In" → Active
+4. **Twilio Webhooks konfigurieren:**
+   - Voice: `https://<DEINE-DOMAIN>/webhook/incoming-call`
+   - SMS: `https://<DEINE-DOMAIN>/webhook/sms-response`
+
+**Fertig!** Teste es mit einem Anruf auf deine Twilio-Nummer.
+
 ## Was das ist
 
 Ein 1GB VPS mit folgendem Setup:
@@ -176,3 +195,139 @@ In der Twilio Console:
 - Keine Datenanreicherung.
 - Kein komplexes CRM.
 - Kein PostgreSQL.
+
+---
+
+## Häufig gestellte Fragen (FAQ)
+
+### Funktioniert das mit Festnetznummern?
+**Teilweise.** Das System erkennt Festnetznummern über die Twilio Lookup API. Bei Festnetzanschlüssen wird keine SMS gesendet (da nicht möglich), sondern sofort eine Telegram-Benachrichtigung an den Handwerker gesendet: "📞 Festnetzanruf von +49 XXX XXXXXXX - Bitte manuell zurückrufen."
+
+### Was passiert, wenn der Kunde nicht mit "JA" antwortet?
+Der Lead wird nach 24 Stunden als "abgelaufen" markiert. Der Handwerker erhält eine Telegram-Benachrichtigung und kann manuell kontaktieren. Das System sendet keine weiteren automatischen Nachrichten.
+
+### Kann ich das System vorübergehend deaktivieren?
+Ja, über das Google Sheets. Füge ein Blatt "Global_Settings" hinzu mit einer Zelle "Status". Wenn der Wert "Inactive" ist, antwortet n8n nicht auf Anrufe. Alternative: Twilio-Nummer in der Konsole vorübergehend deaktivieren.
+
+### Was kostet das pro Monat?
+**Basisbetrieb:**
+- VPS: €4.15 (Hetzner CX11, 1GB RAM)
+- Twilio: ~€2.00 (100 WhatsApp + 30 Min Voice)
+- **Gesamt: ~€6.15/Monat**
+
+**Bei hoher Auslastung:**
+- 1000 Kunden/Monat: ~€10-15
+- 10.000 Kunden/Monat: ~€50-80
+
+### Wie viele Kunden kann das System verarbeiten?
+Unbegrenzt. Google Sheets API erlaubt 28.000 Requests/Monat (Free Tier). Bei 100 Anrufen/Tag = 3.000/Monat hast du reichlich Puffer. Für mehr: Google Sheets API für wenige €/Monat upgraden.
+
+### Was passiert bei Twilio-Guthaben < €5?
+Das System sendet automatisch eine Telegram-Warnung. Es empfiehlt sich, ein Auto-Recharge in Twilio einzurichten (ab €5 automatisch aufladen).
+
+### Kann ich mehrere Handwerker unterstützen?
+Aktuell nicht. Das System ist für EINEN Handwerker ausgelegt. Für mehrere Handwerker ist eine separate Twilio-Nummer pro Handwerker oder eine komplexere Routing-Logik erforderlich (siehe ARCHITECTURE.md, Abschnitt "Multi-Craftsman Routing").
+
+### Wie sicher sind meine Kundendaten?
+Sehr sicher:
+- Alle API-Verbindungen sind HTTPS-verschlüsselt
+- Webhooks werden per HMAC-SHA1 validiert
+- Anmeldeinformationen liegen lokal auf deinem Server (.env)
+- Telegram-Benachrichtigungen enthalten nur Telefonnummern, keine sensiblen Daten
+
+---
+
+## Troubleshooting
+
+### n8n lässt sich nicht öffnen
+**Prüfen:**
+```bash
+docker compose ps  # Container laufen?
+docker compose logs n8n  # Fehler in Logs?
+```
+
+**Lösung:**
+```bash
+docker compose restart n8n
+# Falls das nicht hilft:
+docker compose down -v && docker compose up -d
+```
+
+### Telegram-Benachrichtigungen kommen nicht an
+**Prüfen:**
+1. Ist `TELEGRAM_BOT_TOKEN` korrekt in `.env`?
+2. Ist `TELEGRAM_CHAT_ID` korrekt? (Mit @userinfobot prüfen)
+
+**Testen:**
+```bash
+curl -X POST "https://api.telegram.org/bot<DEIN_TOKEN>/sendMessage" \
+  -d "chat_id=<DEINE_CHAT_ID>" \
+  -d "text=Test-Nachricht"
+```
+
+### Google Sheets werden nicht aktualisiert
+**Prüfen:**
+1. Ist die Tabelle mit der Service-Account-E-Mail geteilt?
+2. Stimmt die `SPREADSHEET_ID`?
+3. Sind die Sheet-Namen exakt korrekt (Groß-/Kleinschreibung)?
+
+**Lösung:**
+- Service-Account-E-Mail in Google Sheets als "Editor" hinzufügen
+- n8n-Credentials neu konfigurieren
+
+### SMS wird nicht gesendet
+**Prüfen:**
+```bash
+# Twilio-Balance prüfen
+curl -X GET "https://api.twilio.com/2010-04-01/Accounts/$TWILIO_ACCOUNT_SID/Balance.json" \
+  -u "$TWILIO_ACCOUNT_SID:$TWILIO_AUTH_TOKEN"
+```
+
+**Lösung:**
+- Guthaben aufladen (min. €20 empfohlen)
+- Twilio-Nummer ist SMS-fähig?
+
+### Anrufe werden nicht beantwortet
+**Prüfen:**
+1. Webhook-URL in Twilio korrekt?
+2. n8n-Workflow ist "Active"?
+3. Traefik leitet Port 443 richtig?
+
+**Lösung:**
+- Twilio-Webhook-Logs in der Konsole prüfen
+- n8n-Workflow-Ausführungen anzeigen
+
+### Speicherplatz auf VPS fast voll
+**Prüfen:**
+```bash
+df -h  # Festplattenbelegung
+du -sh ./n8n_data  # n8n-Daten prüfen
+docker system df  # Docker-Belegung
+```
+
+**Lösung:**
+```bash
+# Docker-Cache aufräumen
+docker system prune -a
+
+# n8n-Ausführungsdaten bereinigen
+# In n8n: Settings → Execution Data → Delete all older than 7 days
+```
+
+### SSL-Zertifikat ist abgelaufen
+**Lösung:**
+```bash
+rm -rf letsencrypt/acme.json
+docker compose restart traefik
+```
+
+---
+
+## Support & Hilfe
+
+- **Detaillierte Anleitungen:** Siehe [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Server-Einrichtung:** Siehe [SERVER_SETUP.md](SERVER_SETUP.md)
+- **n8n Community:** https://community.n8n.io
+- **Twilio Support:** https://support.twilio.com
+
+**Probleme?** Die meisten Lösungen findest du im [SERVER_SETUP.md](SERVER_SETUP.md) im Abschnitt "Fehlerbehebung".
