@@ -4,7 +4,7 @@
 
 set -e
 
-VPS_HOST="${VPS_HOST:-root@instance1.duckdns.org}"
+VPS_HOST="${VPS_HOST:-deploy@instance1.duckdns.org}"
 VPS_DIR="/opt/vorzimmerdrache"
 LOCAL_DIR="$(dirname "$0")/.."
 

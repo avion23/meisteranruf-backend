@@ -16,7 +16,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Configuration
-VPS_HOST="${VPS_HOST:-root@instance1.duckdns.org}"
+VPS_HOST="${VPS_HOST:-deploy@instance1.duckdns.org}"
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "📋 Setup Plan:"

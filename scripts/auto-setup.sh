@@ -2,7 +2,7 @@
 # Auto-execute complete setup without user interaction
 set -e
 
-VPS_HOST="${VPS_HOST:-root@instance1.duckdns.org}"
+VPS_HOST="${VPS_HOST:-deploy@instance1.duckdns.org}"
 PROJECT_DIR="/Users/avion/Documents.nosync/projects/vorzimmerdrache"
 
 echo "🚀 Auto-Executing 3-Question Flow Setup"
