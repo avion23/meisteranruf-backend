@@ -467,7 +467,8 @@
             <a href="#kontakt" class="hero-cta">Jetzt einrichten - Erste Anrufe morgen</a>
 
             <div class="hero-image">
-                <img src="images/hero-pv.jpg" alt="PV-Installateur auf dem Dach bei der Arbeit">
+                <img src="images/hero-pv.jpg" alt="PV-Installateur auf dem Dach bei der Arbeit"
+                     width="1100" height="733" fetchpriority="high" decoding="async">
             </div>
         </div>
     </section>
@@ -478,22 +479,26 @@
             <h2 class="section-title">Das kennen Sie</h2>
             <div class="pain-grid">
                 <div class="pain-item">
-                    <img src="images/stressed.jpg" alt="Gestresster Installateur am Telefon" class="pain-image">
+                    <img src="images/stressed.jpg" alt="Gestresster Installateur am Telefon" class="pain-image"
+                         width="400" height="150" loading="lazy" decoding="async">
                     <h3>Die BAFA-Frist läuft ab und Sie sind auf dem Dach</h3>
                     <p>Kunde ruft an, Förderung muss bis Freitag beantragt sein. Sie können nicht ran. Auftrag weg.</p>
                 </div>
                 <div class="pain-item">
-                    <img src="images/phone.jpg" alt="15 verpasste Anrufe auf dem Display" class="pain-image">
+                    <img src="images/phone.jpg" alt="15 verpasste Anrufe auf dem Display" class="pain-image"
+                         width="400" height="150" loading="lazy" decoding="async">
                     <h3>15 Anrufe vor 9 Uhr - meiste sind Zeitfresser</h3>
                     <p>"Ist die Anlage heute fertig?" "Kann ich noch 2025 fördern?" Zeit, die Sie auf der Baustelle nicht haben.</p>
                 </div>
                 <div class="pain-item">
-                    <img src="images/customer.jpg" alt="Verwirrter Kunde mit Fragen" class="pain-image">
+                    <img src="images/customer.jpg" alt="Verwirrter Kunde mit Fragen" class="pain-image"
+                         width="400" height="150" loading="lazy" decoding="async">
                     <h3>Kunde will Notstrom, hat aber keinen Speicher</h3>
                     <p>Grundlagen erklären, statt montieren. Am Ende kein Auftrag, nur Zeit investiert.</p>
                 </div>
                 <div class="pain-item">
-                    <img src="images/team-meeting.jpg" alt="Team-Besprechung" class="pain-image">
+                    <img src="images/team-meeting.jpg" alt="Team-Besprechung" class="pain-image"
+                         width="400" height="150" loading="lazy" decoding="async">
                     <h3>Subunternehmer steht parat, aber Termin war unklar</h3>
                     <p>Missverständnis im Telefonat. Material bestellen, dann alles verschieben. Ärger und Kosten.</p>
                 </div>
@@ -624,7 +629,14 @@
                 </div>
                 <div class="form-group">
                     <label for="phone">Telefon (für Rückruf)</label>
-                    <input type="tel" id="phone" name="phone" required placeholder="Ihre Telefonnummer">
+                    <input type="tel" id="phone" name="phone" required
+                           pattern="^(\+49|0)[1-9][0-9]{1,14}$"
+                           placeholder="z.B. 0171 12345678 oder +49 171 12345678"
+                           title="Bitte geben Sie eine gültige deutsche Telefonnummer ein">
+                </div>
+                <div class="form-group">
+                    <label for="email">E-Mail (optional)</label>
+                    <input type="email" id="email" name="email" placeholder="mueller@firma.de">
                 </div>
                 <div class="form-group">
                     <label for="installations">Installationen pro Monat (ungefähr)</label>
@@ -634,7 +646,14 @@
                     <label for="message">Nachricht (optional)</label>
                     <textarea id="message" name="message" rows="3" placeholder="Ihre Frage oder Anmerkung"></textarea>
                 </div>
+                <div class="form-group" style="background: #f9fafb; padding: 1rem; border-radius: 4px; margin-top: 1rem;">
+                    <label style="font-weight: 400; font-size: 0.9rem; display: flex; align-items: flex-start; gap: 0.5rem;">
+                        <input type="checkbox" required name="consent" style="width: auto; margin-top: 0.2rem; flex-shrink: 0;">
+                        <span>Ich stimme zu, dass meine Angaben zur Kontaktaufnahme gespeichert und verarbeitet werden. Ich habe die <a href="impressum.html" target="_blank" style="color: var(--accent);">Datenschutzerklärung</a> gelesen. *</span>
+                    </label>
+                </div>
                 <button type="submit" class="submit-btn">Anruf anfordern</button>
+                <div id="formFeedback" style="margin-top: 1rem;"></div>
             </form>
         </div>
     </section>
@@ -716,31 +735,56 @@
             <p>Gebaut von Handwerkern für Handwerker.</p>
             <p>Keine Marketing-Agentur. Kein Investor-Backed Bullshit. Einfach ein Dienst, der funktioniert.</p>
             <p style="margin-top: 1rem;">
-                <a href="#">Impressum</a> •
-                <a href="#">Datenschutz</a> •
-                <a href="#">AGB</a>
+                <a href="impressum.html">Impressum</a> •
+                <a href="datenschutz.html">Datenschutz</a> •
+                <a href="agb.html">AGB</a>
             </p>
-            <p style="margin-top: 1rem; font-size: 0.75rem;">© 2025 VorzimmerDrache. Aus Bayern, für den Mittelstand.</p>
+            <p style="margin-top: 1rem; font-size: 0.75rem;">
+                © 2025 VorzimmerDrache - Ein Angebot der Linda Trading UG (haftungsbeschränkt)<br>
+                Schleidener Str. 6, 50937 Köln | info@ecolinda.com | +49 177 7250 851<br>
+                HRB 97024 Amtsgericht Köln | USt-IdNr: DE 322254850
+            </p>
         </div>
     </footer>
 
-    <!-- Cookie Banner - Shows after scroll -->
+    <!-- Cookie Banner - DSGVO Compliant -->
     <div class="cookie-banner" id="cookieBanner">
-        <span>Diese Seite verwendet Cookies für die Kontaktformular-Funktion. </span>
-        <button class="cookie-btn" onclick="acceptCookies()">OK</button>
+        <div style="max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <span>Wir verwenden ausschließlich technisch notwendige Cookies für das Kontaktformular. Kein Tracking. Keine Werbung. <a href="datenschutz.html" style="color: var(--accent);">Mehr erfahren</a></span>
+            <button class="cookie-btn" onclick="acceptCookies()">Verstanden</button>
+        </div>
     </div>
 
     <script>
-        // Simple form submission
+        // Form submission with inline feedback
         document.getElementById('contactForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Vielen Dank! Wir melden uns innerhalb von 24 Stunden bei Ihnen.');
-            this.reset();
+            const btn = this.querySelector('.submit-btn');
+            const feedback = document.getElementById('formFeedback');
+            const originalText = btn.textContent;
+
+            // Validate consent checkbox
+            const consent = this.querySelector('input[name="consent"]');
+            if (!consent.checked) {
+                feedback.innerHTML = '<div style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 4px;">Bitte stimmen Sie der Datenverarbeitung zu, damit wir Sie kontaktieren können.</div>';
+                return;
+            }
+
+            btn.textContent = 'Wird gesendet...';
+            btn.disabled = true;
+
+            // Simulate form submission (replace with actual endpoint)
+            setTimeout(() => {
+                feedback.innerHTML = '<div style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 4px;">✓ Vielen Dank! Wir melden uns innerhalb von 24 Stunden bei Ihnen. Checken Sie auch Ihren Spam-Ordner.</div>';
+                this.reset();
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 1500);
         });
 
-        // Show cookie banner after scroll
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 500) {
+        // Show cookie banner on page load (DSGVO compliant)
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('cookiesAccepted')) {
                 document.getElementById('cookieBanner').classList.add('show');
             }
         });
