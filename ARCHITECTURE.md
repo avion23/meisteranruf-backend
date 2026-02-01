@@ -13,33 +13,33 @@
 
 ```mermaid
 graph TB
-    subgraph External["External Services"]
+    subgraph External["Externe Dienste"]
         TW[Twilio API<br/>Voice + SMS + WhatsApp]
         TE[Telegram Bot API]
-        GS[Google Sheets<br/>CRM Database]
+        GS[Google Sheets<br/>CRM-Datenbank]
     end
     
     subgraph VPS["1GB VPS (Hetzner CX11)"]
-        subgraph Edge["Edge Layer"]
-            TR[Traefik v2.11<br/>SSL Termination<br/>Rate Limiting]
+        subgraph Edge["Edge-Schicht"]
+            TR[Traefik v2.11<br/>SSL-Terminierung<br/>Rate Limiting]
         end
         
-        subgraph App["Application Layer"]
-            N8[n8n v1.50.0<br/>Workflow Engine<br/>SQLite DB]
+        subgraph App["Anwendungsschicht"]
+            N8[n8n v1.50.0<br/>Workflow-Engine<br/>SQLite DB]
         end
         
-        subgraph Storage["Persistent Storage"]
+        subgraph Storage["Persistenter Speicher"]
             VOL1[(n8n_data<br/>Workflows + DB)]
-            VOL2[(letsencrypt<br/>SSL Certs)]
+            VOL2[(letsencrypt<br/>SSL-Zertifikate)]
         end
     end
     
-    subgraph Clients["Client Layer"]
-        C[Customer<br/>Phone]
-        CR[Craftsman<br/>Telegram App]
+    subgraph Clients["Client-Schicht"]
+        C[Kunde<br/>Telefon]
+        CR[Handwerker<br/>Telegram App]
     end
     
-    C <-- "Voice/SMS/WhatsApp" --> TW
+    C <-- "Sprache/SMS/WhatsApp" --> TW
     TW <-- "Webhooks" --> TR
     TR --> N8
     N8 --> GS
@@ -60,22 +60,22 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph docker_network["Docker Network: vorzimmerdrache_default"]
-        subgraph traefik["Traefik Container"]
+    subgraph docker_network["Docker-Netzwerk: vorzimmerdrache_default"]
+        subgraph traefik["Traefik-Container"]
             TR1[Traefik]
         end
         
-        subgraph n8n["n8n Container"]
+        subgraph n8n["n8n-Container"]
             N8N[n8n]
         end
     end
     
-    subgraph volumes["Docker Volumes"]
+    subgraph volumes["Docker-Volumes"]
         V1[n8n_data<br/>/home/node/.n8n]
         V2[letsencrypt<br/>/letsencrypt]
     end
     
-    subgraph ports["Host Ports"]
+    subgraph ports["Host-Ports"]
         P80[Port 80]
         P443[Port 443]
     end
@@ -85,7 +85,7 @@ graph LR
     TR1 --> N8N
     
     N8N -.->|SQLite DB + Workflows| V1
-    TR1 -.->|SSL Certificates| V2
+    TR1 -.->|SSL-Zertifikate| V2
 ```
 
 ### Infrastructure Layer
@@ -99,7 +99,7 @@ graph LR
     
     subgraph Application_Layer
         TR[Traefik Proxy]
-        N[n8n Automation Engine]
+        N[n8n Automatisierungs-Engine]
     end
     
     subgraph Data_Alerting
@@ -126,27 +126,27 @@ graph LR
 
 ```mermaid
 stateDiagram-v2
-    [*] --> IncomingCall: Phone Rings
-    IncomingCall --> Logged: Call recorded in Sheet
-    Logged --> SMS_Sent: Trigger Opt-in SMS
-    SMS_Sent --> PendingOptIn: 24h Window
+    [*] --> IncomingCall: Telefon klingelt
+    IncomingCall --> Logged: Anruf in Sheet protokolliert
+    Logged --> SMS_Sent: Opt-in SMS auslösen
+    SMS_Sent --> PendingOptIn: 24h Zeitfenster
     
-    PendingOptIn --> WhatsApp_Active: Customer replies "JA"
-    PendingOptIn --> Expired: No reply/Timeout
+    PendingOptIn --> WhatsApp_Active: Kunde antwortet "JA"
+    PendingOptIn --> Expired: Keine Antwort/Timeout
     
-    WhatsApp_Active --> ManualFollowUp: WhatsApp Link Sent
-    Expired --> ManualFollowUp: Craftsman notified
+    WhatsApp_Active --> ManualFollowUp: WhatsApp-Link gesendet
+    Expired --> ManualFollowUp: Handwerker benachrichtigt
     
-    ManualFollowUp --> [*]: Conversation Complete
+    ManualFollowUp --> [*]: Gespräch abgeschlossen
     
     note right of PendingOptIn
-        Customer has 24h to reply "JA"
-        After 24h: Expired state
+        Kunde hat 24h zum Antworten mit "JA"
+        Nach 24h: Abgelaufen-Status
     end note
     
     note right of WhatsApp_Active
-        UWG-compliant opt-in documented
-        WhatsApp communication enabled
+        UWG-konformer Opt-in dokumentiert
+        WhatsApp-Kommunikation aktiviert
     end note
 ```
 
@@ -171,29 +171,29 @@ sequenceDiagram
     participant GS as Google Sheets
     participant TG as Telegram
     
-    Note over N: Step 1: Call Received
-    T->>N: Webhook: Incoming Call
-    N->>N: Normalize phone (E.164)
-    N->>GS: Check if customer exists
+    Note over N: Schritt 1: Anruf empfangen
+    T->>N: Webhook: Eingehender Anruf
+    N->>N: Telefonnummer normalisieren (E.164)
+    N->>GS: Prüfen ob Kunde existiert
     
-    alt Customer exists
-        GS-->>N: Return customer data
-        N->>GS: Update Last_Contact
-    else New customer
-        N->>GS: Create new row
+    alt Kunde existiert
+        GS-->>N: Kundendaten zurückgeben
+        N->>GS: Last_Contact aktualisieren
+    else Neuer Kunde
+        N->>GS: Neue Zeile erstellen
     end
     
-    Note over N: Step 2: Log Call
-    N->>GS: Append to Call_Log sheet
-    N->>N: Trigger parallel actions
+    Note over N: Schritt 2: Anruf protokollieren
+    N->>GS: An Call_Log Sheet anhängen
+    N->>N: Parallele Aktionen auslösen
     
-    par Parallel Actions
-        N->>T: Return TwiML voice message
-        N->>T: Send SMS opt-in invite
-        N->>TG: Send Telegram alert
+    par Parallele Aktionen
+        N->>T: TwiML-Sprachnachricht zurückgeben
+        N->>T: SMS Opt-in Einladung senden
+        N->>TG: Telegram Alarm senden
     end
     
-    Note over GS: Data persisted for analytics
+    Note over GS: Daten für Analytics persistiert
 ```
 
 ### CRM Update Flow Details
@@ -219,28 +219,28 @@ Wenn ein Kunde die Nummer des Handwerkers anruft:
 
 ```mermaid
 sequenceDiagram
-    participant C as Customer
+    participant C as Kunde
     participant T as Twilio
     participant N as n8n
     participant G as Google Sheets
-    participant H as Craftsman (Telegram)
+    participant H as Handwerker (Telegram)
 
-    C->>T: Dials Number
-    T->>N: Webhook: Incoming Call
+    C->>T: Wählt Nummer
+    T->>N: Webhook: Eingehender Anruf
     
-    Note over N: 1. Verify signature<br/>2. Normalize phone number
+    Note over N: 1. Signatur verifizieren<br/>2. Telefonnummer normalisieren
     
-    par Actions in Parallel
-        N->>G: Log call in Call_Log
-        N->>G: Look up customer info
-        N->>H: Send alert: "Missed call from..."
+    par Parallele Aktionen
+        N->>G: Anruf in Call_Log protokollieren
+        N->>G: Kundeninfo nachschlagen
+        N->>H: Alarm senden: "Verpasster Anruf von..."
     end
     
-    N->>T: Return voice message
-    T->>C: 🔊 "We're on the roof. Reply JA for WhatsApp"
+    N->>T: Sprachnachricht zurückgeben
+    T->>C: 🔊 "Wir sind auf dem Dach. Antworte JA für WhatsApp"
     
-    N->>T: Send SMS with opt-in invite
-    T->>C: 📱 "Reply JA to continue on WhatsApp"
+    N->>T: SMS mit Opt-in Einladung senden
+    T->>C: 📱 "Antworte JA um auf WhatsApp fortzufahren"
 ```
 
 **Customer Experience:**
@@ -258,24 +258,24 @@ Nach Erhalt der SMS stimmt der Kunde zu:
 
 ```mermaid
 sequenceDiagram
-    participant C as Customer
+    participant C as Kunde
     participant T as Twilio
     participant N as n8n
     participant G as Google Sheets
-    participant H as Craftsman (Telegram)
+    participant H as Handwerker (Telegram)
 
-    C->>T: Replies: "JA"
-    T->>N: Webhook: SMS Response
+    C->>T: Antwortet: "JA"
+    T->>N: Webhook: SMS-Antwort
     
-    Note over N: Parse message body
+    Note over N: Nachrichteninhalt parsen
     
-    alt Message = "JA"
-        N->>G: Update OptIn_Status = TRUE
-        N->>T: Send WhatsApp message
-        T->>C: 📲 WhatsApp: "Here's your booking link..."
-        N->>H: Alert: "New lead opted in!"
-    else Other text
-        N->>H: Alert: "Invalid response, may need manual follow-up"
+    alt Nachricht = "JA"
+        N->>G: OptIn_Status = TRUE aktualisieren
+        N->>T: WhatsApp Nachricht senden
+        T->>C: 📲 WhatsApp: "Hier ist Ihr Buchungslink..."
+        N->>H: Alarm: "Neuer Lead hat zugestimmt!"
+    else Anderer Text
+        N->>H: Alarm: "Ungültige Antwort, manuelle Nachverfolgung erforderlich"
     end
 ```
 
@@ -304,33 +304,33 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Start[Webhook Received] --> Validate{Validate Signature}
+    Start[Webhook empfangen] --> Validate{Signatur validieren}
     
-    Validate -->|Invalid| Security[HMAC-SHA1 Failed]
-    Validate -->|Valid| Process[Process Request]
+    Validate -->|Ungültig| Security[HMAC-SHA1 fehlgeschlagen]
+    Validate -->|Gültig| Process[Anfrage verarbeiten]
     
-    Process --> CheckType{Line Type Check}
+    Process --> CheckType{Leitungstyp prüfen}
     
-    CheckType -->|Mobile| Proceed[Continue Flow]
-    CheckType -->|Landline| Landline[Landline Detected]
+    CheckType -->|Mobilfunk| Proceed[Flow fortsetzen]
+    CheckType -->|Festnetz| Landline[Festnetz erkannt]
     
-    Landline --> AlertTG[Telegram Alert: Landline Call]
-    AlertTG --> ManualNotify[Craftsman: Call Back Manually]
-    ManualNotify --> End[End]
+    Landline --> AlertTG[Telegram Alarm: Festnetzanruf]
+    AlertTG --> ManualNotify[Handwerker: Manuell zurückrufen]
+    ManualNotify --> End[Ende]
     
-    Proceed --> API[API Call: Twilio/Sheets]
+    Proceed --> API[API-Aufruf: Twilio/Sheets]
     
-    API -->|Success| Success[Continue Workflow]
-    API -->|Rate Limit| Retry[Wait + Retry]
-    API -->|Auth Error| AuthFail[Credentials Invalid]
-    API -->|Network Error| NetRetry[Exponential Backoff]
+    API -->|Erfolg| Success[Workflow fortsetzen]
+    API -->|Rate Limit| Retry[Warten + Wiederholen]
+    API -->|Auth Fehler| AuthFail[Zugangsdaten ungültig]
+    API -->|Netzwerk Fehler| NetRetry[Exponentieller Backoff]
     
-    Retry -->|3 attempts fail| FailMax[Max Retries Exceeded]
-    NetRetry -->|Still failing| FailMax
-    AuthFail --> Critical[Critical Alert]
+    Retry -->|3 Versuche fehlgeschlagen| FailMax[Max Wiederholungen überschritten]
+    NetRetry -->|Immer noch fehlgeschlagen| FailMax
+    AuthFail --> Critical[Kritischer Alarm]
     
-    FailMax --> Partial[Partial Success]
-    Critical --> Admin[Admin Notification]
+    FailMax --> Partial[Teilerfolg]
+    Critical --> Admin[Admin Benachrichtigung]
     
     Success --> End
     Partial --> End
@@ -581,35 +581,35 @@ Alle eingehenden Nummern werden in das E.164 Format konvertiert:
 
 ```mermaid
 flowchart TD
-    Start[Incoming Call] --> Lookup{Lookup Caller Area}
+    Start[Eingehender Anruf] --> Lookup{Anruferregion ermitteln}
     
-    Lookup -->|Prefix 030| Berlin[Berlin Region]
-    Lookup -->|Prefix 089| Munich[Munich Region]
-    Lookup -->|Prefix 040| Hamburg[Hamburg Region]
-    Lookup -->|Other| Default[Default Craftsman]
+    Lookup -->|Vorwahl 030| Berlin[Berlin Region]
+    Lookup -->|Vorwahl 089| Munich[München Region]
+    Lookup -->|Vorwahl 040| Hamburg[Hamburg Region]
+    Lookup -->|Andere| Default[Standard Handwerker]
     
-    Berlin --> CheckB{Berlin Craftsman Available?}
-    Munich --> CheckM{Munich Craftsman Available?}
-    Hamburg --> CheckH{Hamburg Craftsman Available?}
+    Berlin --> CheckB{Berlin Handwerker verfügbar?}
+    Munich --> CheckM{München Handwerker verfügbar?}
+    Hamburg --> CheckH{Hamburg Handwerker verfügbar?}
     
-    CheckB -->|Yes| RouteB[Route to Berlin]
-    CheckB -->|No| RouteB2[Route to Backup]
+    CheckB -->|Ja| RouteB[Route an Berlin]
+    CheckB -->|Nein| RouteB2[Route an Backup]
     
-    CheckM -->|Yes| RouteM[Route to Munich]
-    CheckM -->|No| RouteM2[Route to Backup]
+    CheckM -->|Ja| RouteM[Route an München]
+    CheckM -->|Nein| RouteM2[Route an Backup]
     
-    CheckH -->|Yes| RouteH[Route to Hamburg]
-    CheckH -->|No| RouteH2[Route to Backup]
+    CheckH -->|Ja| RouteH[Route an Hamburg]
+    CheckH -->|Nein| RouteH2[Route an Backup]
     
-    RouteB --> AlertB[Telegram: Berlin Craftsman]
-    RouteM --> AlertM[Telegram: Munich Craftsman]
-    RouteH --> AlertH[Telegram: Hamburg Craftsman]
+    RouteB --> AlertB[Telegram: Berlin Handwerker]
+    RouteM --> AlertM[Telegram: München Handwerker]
+    RouteH --> AlertH[Telegram: Hamburg Handwerker]
     
-    RouteB2 --> AlertBackup[Telegram: On-Call Backup]
+    RouteB2 --> AlertBackup[Telegram: Bereitschafts-Backup]
     RouteM2 --> AlertBackup
     RouteH2 --> AlertBackup
     
-    Default --> AlertDefault[Telegram: Default Craftsman]
+    Default --> AlertDefault[Telegram: Standard Handwerker]
     
     style Berlin fill:#9f9,stroke:#333,stroke-width:2px
     style Munich fill:#9f9,stroke:#333,stroke-width:2px
