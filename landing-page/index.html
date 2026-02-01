@@ -1058,6 +1058,101 @@
                 padding: 1.5rem;
             }
         }
+
+        /* Cookie Banner */
+        .cookie-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 3px solid var(--accent);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            z-index: 9999;
+            padding: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .cookie-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .cookie-text h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .cookie-text p {
+            color: var(--gray);
+            margin: 0;
+        }
+
+        .cookie-text a {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        .cookie-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-shrink: 0;
+        }
+
+        .cookie-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .cookie-btn-primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .cookie-btn-primary:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .cookie-btn-secondary {
+            background: transparent;
+            color: var(--gray);
+            border-color: var(--border);
+        }
+
+        .cookie-btn-secondary:hover {
+            background: var(--light);
+            border-color: var(--gray);
+        }
+
+        @media (max-width: 768px) {
+            .cookie-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .cookie-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .cookie-btn {
+                flex: 1;
+                max-width: 200px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1069,7 +1164,7 @@
                 <li><a href="#social-proof">Referenzen</a></li>
                 <li><a href="#vorteile">Vorteile</a></li>
                 <li><a href="#preise">Preise</a></li>
-                <li><a href="#kontakt" class="nav-cta">3 Monate kostenlos testen</a></li>
+                <li><a href="#kontakt" class="nav-cta">Kostenlos starten</a></li>
             </ul>
         </div>
     </nav>
@@ -1078,20 +1173,20 @@
     <section class="hero">
         <div class="container">
             <div class="hero-content">
-                <div class="hero-badge">✨ Premium Exklusivservice</div>
+                <div class="hero-badge">✨ Erfolgsbasiert - Nur zahlen wenn's zahlt</div>
                 <h1>Premium Anrufservice für<br><span>erfolgreiche Handwerker</span></h1>
-                <p class="hero-subtitle">Verlieren Sie nie wieder einen Auftrag wegen verpasster Anrufe. Professionelles Telefonsekretariat für Handwerksbetriebe mit €500k+ Umsatz.</p>
-                
+                <p class="hero-subtitle">Verlieren Sie nie wieder einen Auftrag wegen verpasster Anrufe. Wir installieren den Service kostenlos - Sie zahlen nur, wenn Sie mehr Umsatz generieren.</p>
+
                 <div class="hero-cta">
-                    <a href="#preise" class="btn btn-primary">3 Monate kostenlos testen</a>
+                    <a href="#preise" class="btn btn-primary">Kostenlos installieren lassen</a>
                     <a href="#vorteile" class="btn btn-secondary">Mehr erfahren</a>
                 </div>
                 
                 <div class="urgency-banner">
-                    <div class="urgency-icon">⏰</div>
+                    <div class="urgency-icon">🛡️</div>
                     <div class="urgency-text">
-                        <strong>Nur 10 Plätze im Februar verfügbar</strong><br>
-                        Sichern Sie sich Ihren Termin für den Monatserfolg
+                        <strong>100% Erfolgsgarantie</strong><br>
+                        Sie zahlen nur, wenn Sie messbar mehr Umsatz generieren
                     </div>
                 </div>
             </div>
@@ -1264,7 +1359,7 @@
                         <label>LeadRettet Premium</label>
                         <div class="premium-highlight" style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; border: 1px solid var(--accent);">
                             <strong style="color: var(--accent);">€200/Monat</strong>
-                            <div style="font-size: 0.9rem; opacity: 0.8;">3 Monate kostenlos testen</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Nur bei Erfolg</div>
                         </div>
                     </div>
                 </div>
@@ -1296,8 +1391,8 @@
             </div>
             
             <div class="calculator-cta" style="text-align: center; margin-top: 3rem;">
-                <a href="#kontakt" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.2rem 2.5rem;">3 Monate kostenlos testen</a>
-                <p style="margin-top: 1rem; opacity: 0.8;">Jederzeit kündbar • Keine Kreditkarte erforderlich</p>
+                <a href="#kontakt" class="btn btn-primary" style="font-size: 1.2rem; padding: 1.2rem 2.5rem;">Kostenlos installieren lassen</a>
+                <p style="margin-top: 1rem; opacity: 0.8;">Nur zahlen wenn's zahlt • Keine Kreditkarte erforderlich</p>
             </div>
         </div>
     </section>
@@ -1307,27 +1402,27 @@
         <div class="container">
             <div class="section-header">
                 <div class="section-tag">Preise</div>
-                <h2 class="section-title">Premium-Service für Premium-Handwerker</h2>
-                <p class="section-subtitle">Eine Investition, die sich trifft. Testen Sie 3 Monate komplett kostenlos.</p>
+                <h2 class="section-title">Erfolgsbasiert - Nur zahlen wenn's zahlt</h2>
+                <p class="section-subtitle">Wir installieren kostenlos. Sie zahlen erst, wenn Sie messbar mehr Umsatz generieren.</p>
             </div>
-            
+
             <div class="pricing-card">
-                <div class="pricing-badge">MEISTGEWÄHLT</div>
-                
+                <div class="pricing-badge">ERFOLGSBASIERT</div>
+
                 <div class="pricing-header">
                     <h3>Premium Anrufservice</h3>
                     <p class="subtitle">Professionelles Telefonsekretariat für Ihren Handwerksbetrieb</p>
                 </div>
-                
+
                 <div class="trial-highlight">
-                    <div class="trial-text">🎉 3 Monate komplett kostenlos testen</div>
-                    <div class="trial-sub">Keine Kreditkarte erforderlich. Volles Leistungspaket.</div>
+                    <div class="trial-text">🎉 Kostenlose Installation & Einrichtung</div>
+                    <div class="trial-sub">Wir richten alles ein. Sie zahlen nur bei Erfolg.</div>
                 </div>
-                
+
                 <div class="price-display">
                     <div class="amount">€200</div>
-                    <div class="period">pro Monat • jederzeit kündbar</div>
-                    <div class="guarantee">✓ 30-Tage Geld-zurück-Garantie</div>
+                    <div class="period">pro Monat • nur bei Erfolg</div>
+                    <div class="guarantee">✓ Zahlen Sie nur, wenn Sie mehr Umsatz machen</div>
                 </div>
                 
                 <div class="feature-list">
@@ -1346,7 +1441,7 @@
                 </div>
                 
                 <div class="pricing-cta">
-                    <a href="#kontakt" class="btn btn-primary">Jetzt 3 Monate kostenlos testen</a>
+                    <a href="#kontakt" class="btn btn-primary">Kostenlos installieren lassen</a>
                     <div class="trust-marks">
                         <div class="trust-mark">
                             <span class="trust-mark-icon">🔒</span>
@@ -1389,8 +1484,8 @@
                 
                 <div class="trust-item">
                     <div class="trust-item-icon">💰</div>
-                    <h4>30 Tage Geld-zurück</h4>
-                    <p>Nicht zufrieden? Volle Rückerstattung innerhalb der ersten 30 Tage</p>
+                    <h4>Erfolgsgarantie</h4>
+                    <p>Zahlen Sie nur, wenn Sie mehr Umsatz generieren. Kein Erfolg = Kostenlos.</p>
                 </div>
                 
                 <div class="trust-item">
@@ -1407,8 +1502,8 @@
         <div class="container">
             <div class="cta-box">
                 <h2>Bereit für Ihren Erfolg?</h2>
-                <p>Starten Sie jetzt Ihr 3-Monate-Free-Trial. Keine Risiko, volle Leistung.</p>
-                <a href="#kontakt" class="btn btn-primary">Jetzt kostenlos testen</a>
+                <p>Wir installieren kostenlos. Sie zahlen nur, wenn Sie mehr Umsatz machen.</p>
+                <a href="#kontakt" class="btn btn-primary">Jetzt kostenlos starten</a>
             </div>
         </div>
     </section>
@@ -1425,8 +1520,8 @@
                     <div class="contact-method">
                         <div class="contact-method-icon">✓</div>
                         <div>
-                            <strong>3 Monate kostenlos testen</strong><br>
-                            <span style="color: var(--gray);">Keine Kreditkarte, volle Leistung</span>
+                            <strong>Kostenlose Installation</strong><br>
+                            <span style="color: var(--gray);">Wir richten alles ein - ohne Kosten</span>
                         </div>
                     </div>
                     <div class="contact-method">
@@ -1597,6 +1692,77 @@
                 }
             });
         });
+    </script>
+
+    <!-- Cookie Banner -->
+    <div id="cookie-banner" class="cookie-banner" style="display: none;">
+        <div class="cookie-content">
+            <div class="cookie-text">
+                <h4>🍪 Cookie-Einstellungen</h4>
+                <p>Wir verwenden Cookies für Analyse und Funktionalität. <a href="datenschutz.html">Mehr erfahren</a></p>
+            </div>
+            <div class="cookie-buttons">
+                <button id="cookie-essential" class="cookie-btn cookie-btn-secondary">Nur essenzielle</button>
+                <button id="cookie-accept" class="cookie-btn cookie-btn-primary">Alle akzeptieren</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cookie Consent Management
+        (function() {
+            const COOKIE_CONSENT_KEY = 'cookie_consent';
+            const COOKIE_EXPIRY_DAYS = 365;
+
+            function setCookie(name, value, days) {
+                const expires = new Date(Date.now() + days * 864e5).toUTCString();
+                document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+            }
+
+            function getCookie(name) {
+                return document.cookie.split('; ').reduce((r, v) => {
+                    const parts = v.split('=');
+                    return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+                }, '');
+            }
+
+            function showCookieBanner() {
+                const banner = document.getElementById('cookie-banner');
+                if (banner) banner.style.display = 'block';
+            }
+
+            function hideCookieBanner() {
+                const banner = document.getElementById('cookie-banner');
+                if (banner) banner.style.display = 'none';
+            }
+
+            function handleConsent(choice) {
+                setCookie(COOKIE_CONSENT_KEY, choice, COOKIE_EXPIRY_DAYS);
+                hideCookieBanner();
+                
+                // Load analytics only if user consented
+                if (choice === 'all') {
+                    loadAnalytics();
+                }
+            }
+
+            function loadAnalytics() {
+                // Cloudflare Web Analytics would be loaded here
+                console.log('Analytics enabled');
+            }
+
+            // Check existing consent
+            const existingConsent = getCookie(COOKIE_CONSENT_KEY);
+            if (!existingConsent) {
+                showCookieBanner();
+            } else if (existingConsent === 'all') {
+                loadAnalytics();
+            }
+
+            // Event listeners
+            document.getElementById('cookie-accept')?.addEventListener('click', () => handleConsent('all'));
+            document.getElementById('cookie-essential')?.addEventListener('click', () => handleConsent('essential'));
+        })();
     </script>
 </body>
 </html>
