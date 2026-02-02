@@ -53,7 +53,8 @@
       "afterIconAlt": "Erfolg",
       "afterTitle": "Qualifizierte Termine",
       "afterText": "Wir nehmen jeden Anruf, filtern Ernsthaftige, melden nur echte Leads.",
-      "afterImage": "/assets/images/after_organized.webp"
+      "afterImage": "/assets/images/after_organized.webp",
+      "vossLabel": "Das ist ärgerlich. Kunden warten nicht."
     },
     {
       "beforeIcon": "/assets/images/icon_moon.webp",
@@ -65,7 +66,8 @@
       "afterIconAlt": "Freizeit",
       "afterTitle": "Freie Abende",
       "afterText": "Wir haben tagsüber alles geklärt. Sie genießen Ihren Feierabend.",
-      "afterImage": null
+      "afterImage": null,
+      "vossLabel": "Das ist anstrengend. Familie wartet, Akku ist leer."
     },
     {
       "beforeIcon": "/assets/images/icon_car.webp",
@@ -95,6 +97,11 @@
       "question": "...Ihr Wettbewerber die Anrufe annimmt?",
       "impact": "Competitive",
       "answer": "Kunden warten nicht. Die rufen den nächsten Betrieb an. Und der nächste ist schneller."
+    },
+    {
+      "question": "...Sie 3x nicht rangehen?",
+      "impact": "Leads & Reputation",
+      "answer": "Kunden warten nicht. Die erzählen 2 Freunden weiter. \"Nie erreichbar.\""
     },
     {
       "question": "...Sie abends noch Rückrufe machen?",

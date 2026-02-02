@@ -33,6 +33,10 @@
         "consequence": "Kunden warten nicht. Die rufen den nächsten Betrieb an. Und der nächste ist schneller."
       },
       {
+        "condition": "...Sie 3x nicht rangehen?",
+        "consequence": "Kunden warten nicht. Die erzählen 2 Freunden weiter. \"Nie erreichbar.\""
+      },
+      {
         "condition": "...Sie abends noch Rückrufe machen?",
         "consequence": "Akku leer, Familie wartet. Morgen sind Sie müde. Auf dem Dach gefährlich."
       }

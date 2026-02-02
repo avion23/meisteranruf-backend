@@ -22,6 +22,14 @@
     }
     .comparison-icon { font-size: 1.2rem; margin-right: 0.5rem; }
     .comparison-text { font-size: 0.95rem; line-height: 1.4; }
+    .validation-box {
+        background: #fef3c7; border-left: 4px solid var(--accent);
+        padding: 1rem; margin-top: 1rem; border-radius: 4px;
+    }
+    .validation-box p {
+        margin: 0; font-size: 0.9rem; font-style: italic;
+        color: var(--primary); font-weight: 500;
+    }
 </style>
 
 <section class="pain-points" id="problem">
@@ -35,7 +43,7 @@
                         <img src="{{ item.beforeImage }}" alt="{{ item.beforeTitle }}" class="comparison-image" loading="lazy" width="400" height="200">
                     {% else %}
                         <div class="comparison-placeholder" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
-                            <span>{{ item.beforeIcon }}</span>
+                            <img src="{{ item.beforeIcon }}" alt="{{ item.beforeTitle }}" width="32" height="32">
                         </div>
                     {% endif %}
                     <span class="comparison-icon">❌</span>
@@ -46,12 +54,17 @@
                         <img src="{{ item.afterImage }}" alt="{{ item.afterTitle }}" class="comparison-image" loading="lazy" width="400" height="200">
                     {% else %}
                         <div class="comparison-placeholder" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
-                            <span>{{ item.afterIcon }}</span>
+                            <img src="{{ item.afterIcon }}" alt="{{ item.afterTitle }}" width="32" height="32">
                         </div>
                     {% endif %}
                     <span class="comparison-icon">✅</span>
                     <span class="comparison-text"><strong>{{ item.afterTitle }}:</strong> {{ item.afterText }}</span>
                 </div>
+                {% if item.vossLabel %}
+                <div class="validation-box">
+                    <p>"{{ item.vossLabel }}"</p>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         </div>

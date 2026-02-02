@@ -6,7 +6,7 @@
         <div class="workflow-visual">
             {% for step in howItWorks.workflow %}
             <div class="workflow-step">
-                <div class="workflow-icon">{{ step.icon }}</div>
+                <div class="workflow-icon"><img src="{{ step.icon }}" alt="{{ step.title }}" width="32" height="32"></div>
                 <h4>{{ step.title }}</h4>
                 <p>{{ step.subtitle or step.description }}</p>
             </div>

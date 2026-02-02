@@ -11,7 +11,7 @@
         <div class="pain-grid">
             {% for signal in pageContent.trustSignals %}
             <div class="pain-item">
-                <div style="font-size: 2rem; margin-bottom: 0.5rem;">{{ signal.icon }}</div>
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;"><img src="{{ signal.icon }}" alt="{{ signal.title }}" width="32" height="32"></div>
                 <h3>{{ signal.title }}</h3>
                 <p>{{ signal.description }}</p>
             </div>

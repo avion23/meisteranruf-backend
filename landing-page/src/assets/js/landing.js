@@ -1,5 +1,5 @@
-        // Form submission with inline feedback
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
+        // Form submission with Formspree backend
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = this.querySelector('.submit-btn');
             const feedback = document.getElementById('formFeedback');
@@ -14,14 +14,36 @@
 
             btn.textContent = 'Wird gesendet...';
             btn.disabled = true;
+            feedback.innerHTML = '';
 
-            // Simulate form submission (replace with actual endpoint)
-            setTimeout(() => {
-                feedback.innerHTML = '<div style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 4px;">✓ Vielen Dank! Wir melden uns innerhalb von 24 Stunden bei Ihnen. Checken Sie auch Ihren Spam-Ordner.</div>';
-                this.reset();
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    feedback.innerHTML = '<div style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 4px;">✓ Vielen Dank! Wir melden uns innerhalb von 24 Stunden bei Ihnen. Checken Sie auch Ihren Spam-Ordner.</div>';
+                    this.reset();
+                } else {
+                    throw new Error(result.error || 'Formularübermittlung fehlgeschlagen');
+                }
+            } catch (error) {
+                console.error('Form submission error:', error);
+                feedback.innerHTML = '<div style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 4px;">✕ Fehler beim Senden. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns direkt per E-Mail.</div>';
+            } finally {
                 btn.textContent = originalText;
                 btn.disabled = false;
-            }, 1500);
+            }
         });
 
         // ROI Calculator function

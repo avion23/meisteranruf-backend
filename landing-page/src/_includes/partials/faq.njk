@@ -23,7 +23,7 @@
             {% for item in faq.items %}
             <div class="faq-item">
                 <div class="faq-question">
-                    <span class="faq-icon">{{ item.icon }}</span>
+                    <span class="faq-icon"><img src="{{ item.icon }}" alt="{{ item.question }}" width="32" height="32"></span>
                     {{ item.question }}
                 </div>
                 <div class="faq-answer">

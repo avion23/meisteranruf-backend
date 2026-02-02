@@ -1,0 +1,71 @@
+<style>
+    .features-section {
+        padding: 3rem 0;
+        background: var(--white);
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    .feature-box {
+        background: var(--light-gray);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid var(--accent);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .feature-box:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+    }
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+    }
+    .feature-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+    }
+    .feature-desc {
+        font-size: 0.9rem;
+        color: var(--dark-gray);
+        line-height: 1.5;
+    }
+    @media (max-width: 768px) {
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="features-section">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feature-icon">✅</div>
+                <div class="feature-title">PV-Spezialist</div>
+                <div class="feature-desc">Fronius, SMA, Kostal - wir kennen Ihre Wechselrichter und sprechen Ihre Sprache.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">📱</div>
+                <div class="feature-title">WhatsApp in Echtzeit</div>
+                <div class="feature-desc">Erhalte Anfragen sofort auf dein Handy - keine 24h Verzögerung mehr.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">💰</div>
+                <div class="feature-title">Nur bei Erfolg zahlen</div>
+                <div class="feature-desc">Keine monatlichen Gebühren. Du zahlst nur für qualifizierte Termine.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feature-icon">🚀</div>
+                <div class="feature-title">7 Tage bis Go-Live</div>
+                <div class="feature-desc">Schnellstmöglicher Start. In einer Woche wirst du erste Anfragen erhalten.</div>
+            </div>
+        </div>
+    </div>
+</section>

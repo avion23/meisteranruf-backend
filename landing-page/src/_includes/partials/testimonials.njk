@@ -22,6 +22,20 @@
     .testimonial-company { font-weight: 700; color: var(--primary); margin-bottom: 0.25rem; }
     .testimonial-info { font-size: 0.85rem; color: var(--medium-gray); margin-bottom: 1rem; }
     .testimonial-quote { font-size: 1rem; color: var(--dark-gray); line-height: 1.5; }
+    .founder-note {
+        background: var(--primary);
+        color: var(--white);
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 3rem;
+        border: 2px solid var(--accent);
+    }
+    .founder-note p {
+        font-size: 1.1rem;
+        font-weight: 600;
+        font-style: italic;
+    }
     @media (max-width: 768px) {
         .testimonial-grid { grid-template-columns: 1fr; }
     }
@@ -43,6 +57,10 @@
                 <p class="testimonial-quote">"{{ item.quote }}"</p>
             </div>
             {% endfor %}
+        </div>
+
+        <div class="founder-note">
+            <p>"Von Handwerkern gegründet, nicht von Marketing-Agenturen"</p>
         </div>
     </div>
 </section>

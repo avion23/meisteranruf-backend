@@ -5,7 +5,7 @@
             {{ pageContent.contact.subline }}
         </p>
 
-        <form class="contact-form" id="contactForm">
+        <form class="contact-form" id="contactForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
             <div class="form-group">
                 <label for="name">{{ pageContent.contact.form.name.label }}</label>
                 <input type="text" id="name" name="name" required placeholder="{{ pageContent.contact.form.name.placeholder }}">
@@ -20,6 +20,7 @@
             <div class="form-group">
                 <label for="email">{{ pageContent.contact.form.email.label }}</label>
                 <input type="email" id="email" name="email" placeholder="{{ pageContent.contact.form.email.placeholder }}">
+                <input type="hidden" name="_subject" value="Neue Kontaktanfrage von VorzimmerDrache">
             </div>
             <div class="form-group">
                 <label for="installations">{{ pageContent.contact.form.installations.label }}</label>
