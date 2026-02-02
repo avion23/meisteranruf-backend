@@ -210,14 +210,204 @@
 
         .hero-image {
             margin-top: 2rem;
-            border-radius: 4px;
+            border-radius: 8px;
             overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
         .hero-image img {
             width: 100%;
             height: auto;
             display: block;
+            transition: transform 0.3s ease;
+        }
+
+        .hero-image:hover img {
+            transform: scale(1.02);
+        }
+
+        /* Enhanced image containers */
+        .image-container {
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Before/After comparison images */
+        .comparison-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+
+        /* Testimonial avatars */
+        .testimonial-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            border: 3px solid var(--accent);
+        }
+
+        .avatar-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-darker));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            border: 3px solid var(--accent);
+        }
+
+        /* Trust badges */
+        .trust-badges {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .trust-badge {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .trust-badge:hover {
+            transform: translateY(-4px);
+        }
+
+        .trust-badge-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .trust-badge-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .trust-badge-sub {
+            font-size: 0.75rem;
+            color: var(--medium-gray);
+            margin-top: 0.25rem;
+        }
+
+        /* Process workflow visual */
+        .workflow-visual {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .workflow-step {
+            text-align: center;
+            position: relative;
+        }
+
+        .workflow-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .workflow-step:not(:last-child)::after {
+            content: '→';
+            position: absolute;
+            top: 30px;
+            right: -20px;
+            font-size: 2rem;
+            color: var(--accent);
+            z-index: 1;
+        }
+
+        .workflow-step h4 {
+            font-size: 0.9rem;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .workflow-step p {
+            font-size: 0.75rem;
+            color: var(--medium-gray);
+        }
+
+        /* Pricing comparison chart */
+        .pricing-comparison {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .pricing-row:last-child {
+            border-bottom: none;
+        }
+
+        .pricing-option {
+            flex: 1;
+            text-align: center;
+        }
+
+        .pricing-option.highlight {
+            background: rgba(184, 134, 11, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: -1rem;
+        }
+
+        .pricing-check {
+            color: #10b981;
+            font-size: 1.5rem;
+        }
+
+        .pricing-cross {
+            color: #ef4444;
+            font-size: 1.5rem;
         }
 
         /* Pain Points Section */
@@ -638,6 +828,58 @@
                 flex-direction: column;
                 gap: 1rem;
             }
+
+            /* Workflow visual on mobile */
+            .workflow-visual {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .workflow-step:not(:last-child)::after {
+                content: '↓';
+                top: auto;
+                bottom: -25px;
+                right: 50%;
+                transform: translateX(50%);
+            }
+
+            /* Trust badges on mobile */
+            .trust-badges {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            /* Pricing comparison on mobile */
+            .pricing-comparison {
+                font-size: 0.85rem;
+            }
+
+            .pricing-row {
+                flex-wrap: wrap;
+            }
+
+            .pricing-option {
+                flex: 1 1 100%;
+                padding: 0.5rem 0;
+                text-align: center;
+            }
+
+            .pricing-option.highlight {
+                background: transparent;
+                margin: 0;
+                padding: 0.5rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .trust-badges {
+                grid-template-columns: 1fr;
+            }
+
+            .workflow-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -649,20 +891,73 @@
      <nav role="navigation" aria-label="Hauptnavigation">
          <div class="container">
              <div class="logo">Vorzimmer<span>Drache</span></div>
-             <a href="#kontakt" class="nav-cta">Jetzt einrichten</a>
+             <a href="#kontakt" class="nav-cta">Jetzt testen</a>
          </div>
      </nav>
 
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h1>Ihre Kunden rufen wegen der Förderfrist an - Sie hängen am Wechselrichter</h1>
-            <p class="hero-subline">Wir übernehmen die Anrufe, die Sie nicht selbst nehmen können. Spezialisiert auf Photovoltaik und Speichersysteme.</p>
-            <a href="#kontakt" class="hero-cta">Jetzt einrichten - Erste Anrufe morgen</a>
+            <h1>Wie viele BAFA-Anträge sind Ihnen diesen Monat durch die Lappen gegangen?</h1>
+            <p class="hero-subline">Es klingelt immer im falschen Moment. Sie verlieren Aufträge. Und am Ende sitzen Sie abends bis 21 Uhr am Telefon. Das frustriert. Und es ist nicht Ihre Schuld.</p>
+            <a href="#kontakt" class="hero-cta">Jetzt testen - 7 Tage kostenlos</a>
 
             <div class="hero-image">
                 <img src="images/hero-pv.jpg" alt="PV-Installateur auf dem Dach bei der Arbeit"
                      width="1100" height="733" fetchpriority="high" decoding="async">
+            </div>
+        </div>
+    </section>
+
+    <!-- That's Right Section - Voss Validation Moment -->
+    <section class="pain-points" style="background: #fef3c7; border-bottom: none; padding: 2rem 0;">
+        <div class="container">
+            <div style="background: white; padding: 2rem; border-left: 4px solid var(--accent); border-radius: 4px; max-width: 800px; margin: 0 auto;">
+                <h2 style="color: var(--primary); font-size: 1.4rem; font-weight: 700; margin-bottom: 1rem;">
+                    Das ist frustrierend.
+                </h2>
+                <p style="font-size: 1.1rem; line-height: 1.6; color: var(--dark-gray);">
+                    Sie können nicht gleichzeitig auf dem Dach kabeln, Angebote schreiben UND jeden Anruf persönlich entgegennehmen. Irgendwas geht dabei immer unter. Leads, Fristen, Ihre Zeit. <strong>Das ist nicht Ihre Schuld.</strong> Sie sind ein guter Handwerker. Kein Callcenter-Manager.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calibrated Questions Section - Voss How/What Questions -->
+    <section class="pain-points" style="background: white; border-bottom: none;">
+        <div class="container">
+            <h2 class="section-title" style="text-align: center;">Was passiert mit Ihrem Betrieb, wenn...</h2>
+            <div class="pain-grid" style="margin-top: 2rem;">
+                <div class="pain-item" style="background: #fffbeb;">
+                    <h3>...Sie drei weitere BAFA-Fristen verpassen?</h3>
+                    <p>Das sind 3 Kunden, die nie zurückkommen. Die erzählen das weiter. Ihr Ruf leidet.</p>
+                </div>
+                <div class="pain-item" style="background: #fffbeb;">
+                    <h3>...Sie 2 Stunden pro Tag weniger am Dach sind?</h3>
+                    <p>2 Stunden × 20 Arbeitstage = 40 Stunden weniger Umsatz pro Monat. Das kostet Sie mehr als unser gesamter Service.</p>
+                </div>
+                <div class="pain-item" style="background: #fffbeb;">
+                    <h3>...Ihr Wettbewerber die Anrufe annimmt?</h3>
+                    <p>Kunden warten nicht. Die rufen den nächsten Betrieb an. Und der nächste ist schneller.</p>
+                </div>
+                <div class="pain-item" style="background: #fffbeb;">
+                    <h3>...Sie abends noch Rückrufe machen?</h3>
+                    <p>Akku leer, Familie wartet. Morgen sind Sie müde. Auf dem Dach gefährlich.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mirror Box Section - Customer Language -->
+    <section class="pain-points" style="background: var(--light-gray); border-bottom: none;">
+        <div class="container">
+            <div style="background: var(--primary); color: white; padding: 2rem; border-radius: 8px; text-align: center; max-width: 700px; margin: 0 auto;">
+                <p style="font-size: 1.3rem; font-weight: 600; font-style: italic; line-height: 1.6;">
+                    "Es klingelt immer, wenn ich gerade die Klemmen in der Hand habe. Ich weiß nicht, ob ich ans Telefon gehen soll oder fertigkabeln. Am Ende mach ich beides halb."
+                </p>
+                <p style="margin-top: 1rem; font-size: 0.95rem; color: var(--accent);">
+                    — Was PV-Installateure uns sagen. Jeden Tag.
+                </p>
             </div>
         </div>
     </section>
@@ -674,40 +969,58 @@
             <div class="before-after-grid">
                 <div class="comparison-pair">
                     <div class="comparison-before">
+                        <img src="images/stressed.jpg" alt="Gestresster Installateur mit Telefon" class="comparison-image" loading="lazy" width="400" height="200">
                         <span class="comparison-icon">❌</span>
                         <span class="comparison-text"><strong>Telefonchaos:</strong> 15 Anrufe, 3 wichtige, 12 Zeitfresser. Sie sortieren abends.</span>
                     </div>
                     <div class="comparison-after">
+                        <img src="images/phone.jpg" alt="WhatsApp Übersicht auf Smartphone" class="comparison-image" loading="lazy" width="400" height="200">
                         <span class="comparison-icon">✅</span>
                         <span class="comparison-text"><strong>WhatsApp-Zusammenfassung:</strong> Abends eine Nachricht mit allen wichtigen Infos. Fertig.</span>
                     </div>
                 </div>
                 <div class="comparison-pair">
                     <div class="comparison-before">
+                        <div class="comparison-image" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 4rem;">📞</span>
+                        </div>
                         <span class="comparison-icon">❌</span>
                         <span class="comparison-text"><strong>Leads verloren:</strong> Kunde ruft 3x an, niemand geht ran. Bei Konkurrenz bestellt.</span>
                     </div>
                     <div class="comparison-after">
+                        <div class="comparison-image" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 4rem;">🤝</span>
+                        </div>
                         <span class="comparison-icon">✅</span>
                         <span class="comparison-text"><strong>Qualifizierte Termine:</strong> Wir nehmen jeden Anruf, filtern Ernsthaftige, melden nur echte Leads.</span>
                     </div>
                 </div>
                 <div class="comparison-pair">
                     <div class="comparison-before">
+                        <div class="comparison-image" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 4rem;">🌙</span>
+                        </div>
                         <span class="comparison-icon">❌</span>
                         <span class="comparison-text"><strong>Abende im Büro:</strong> Rückrufe bis 21 Uhr. Familie wartet, Akku leer.</span>
                     </div>
                     <div class="comparison-after">
+                        <img src="images/customer.jpg" alt="Zufriedener Kunde nach Installation" class="comparison-image" loading="lazy" width="400" height="200">
                         <span class="comparison-icon">✅</span>
                         <span class="comparison-text"><strong>Freie Abende:</strong> Wir haben tagsüber alles geklärt. Sie genießen Ihren Feierabend.</span>
                     </div>
                 </div>
                 <div class="comparison-pair">
                     <div class="comparison-before">
+                        <div class="comparison-image" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 4rem;">🚗</span>
+                        </div>
                         <span class="comparison-icon">❌</span>
                         <span class="comparison-text"><strong>Doppelte Fahrten:</strong> Termin vereinbart, Kunde da, Infos fehlen. Nochmal fahren.</span>
                     </div>
                     <div class="comparison-after">
+                        <div class="comparison-image" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 4rem;">✓</span>
+                        </div>
                         <span class="comparison-icon">✅</span>
                         <span class="comparison-text"><strong>Komplett-Infos:</strong> Dach, Strom, Budget - alles geprüft vor dem ersten Termin.</span>
                     </div>
@@ -720,6 +1033,31 @@
     <section class="how-it-works">
         <div class="container">
             <h2 class="section-title">So geht's</h2>
+
+            <!-- Visual Workflow -->
+            <div class="workflow-visual">
+                <div class="workflow-step">
+                    <div class="workflow-icon">📞</div>
+                    <h4>Anruf eingehend</h4>
+                    <p>Kunde ruft an</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-icon">🔍</div>
+                    <h4>Prüfung & Filter</h4>
+                    <p>Wir qualifizieren</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-icon">💬</div>
+                    <h4>WhatsApp Info</h4>
+                    <p>Sie erhalten Details</p>
+                </div>
+                <div class="workflow-step">
+                    <div class="workflow-icon">🤝</div>
+                    <h4>Termin bestätigt</h4>
+                    <p>Auftrag in Sicht</p>
+                </div>
+            </div>
+
             <div class="steps-grid">
                 <div class="step-item">
                     <div class="step-number">1</div>
@@ -744,99 +1082,201 @@
             </div>
 
             <div style="margin-top: 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-                <img src="images/workshop.jpg" alt="Professionelle PV-Werkstatt" 
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"
-                     width="400" height="200" loading="lazy">
-                <img src="images/electrician.jpg" alt="Elektriker bei der Installation" 
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"
-                     width="400" height="200" loading="lazy">
-                <img src="images/tools.jpg" alt="Professionelle Werkzeuge" 
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"
-                     width="400" height="200" loading="lazy">
+                <div class="image-container">
+                    <img src="images/workshop.jpg" alt="Professionelle PV-Werkstatt"
+                         width="400" height="200" loading="lazy">
+                </div>
+                <div class="image-container">
+                    <img src="images/electrician.jpg" alt="Elektriker bei der Installation"
+                         width="400" height="200" loading="lazy">
+                </div>
+                <div class="image-container">
+                    <img src="images/tools.jpg" alt="Professionelle Werkzeuge"
+                         width="400" height="200" loading="lazy">
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- FAQ Section -->
+    <!-- WhatsApp Examples -->
     <section class="how-it-works" style="background: var(--light-gray);">
         <div class="container">
-            <h2 class="section-title">Häufige Fragen</h2>
+            <h2 class="section-title">So sehen die WhatsApp-Nachrichten aus</h2>
+            <div class="pain-grid" style="margin-top: 2rem;">
+                <div class="pain-item">
+                    <h3>🔴 Wichtiger Rückruf</h3>
+                    <p style="font-family: monospace; font-size: 0.9rem; background: #f9fafb; padding: 1rem; border-radius: 4px;">
+                        Herr Meyer ruft wegen laufender BAFA-Frist an.<br>
+                        Rufen Sie zurück: 0171 12345678<br><br>
+                        Details:<br>
+                        • BAFA-Antrag läuft in 10 Tagen ab<br>
+                        • 8kWp geplant, Eigenbedarf<br>
+                        • Dach geprüft, Baurecht vorhanden<br>
+                        • Budget: €20-25k<br><br>
+                        Dringlichkeit: HOCH
+                    </p>
+                </div>
+                <div class="pain-item">
+                    <h3>📊 Tageszusammenfassung</h3>
+                    <p style="font-family: monospace; font-size: 0.9rem; background: #f9fafb; padding: 1rem; border-radius: 4px;">
+                        HEUTE: 12 Anrufe, 3 wichtige, 1 Termin<br><br>
+                        Wichtige Rückrufe:<br>
+                        1. Schmidt - 6kWp, Deckungserklärung liegt vor<br>
+                        2. Wegener - 3 Dächer Nachbarschaftsprojekt<br>
+                        3. Bauer - Gewerbehalle 30kWp, dringend<br><br>
+                        Termin bestätigt:<br>
+                        Sa 10:00 - Meier, Dachsanierung + 5kWp
+                    </p>
+                </div>
+                <div class="pain-item">
+                    <h3>❌ Gefiltert (Zeitfresser)</h3>
+                    <p style="font-family: monospace; font-size: 0.9rem; background: #f9fafb; padding: 1rem; border-radius: 4px;">
+                        Anruf abgewiesen - Schmidt<br><br>
+                        Details:<br>
+                        • Kein Baurecht nachgefragt<br>
+                        • Will "schnell mal Preis" ohne Besichtigung<br>
+                        • Vergleicht 5 Anbieter gleichzeitig<br>
+                        • Budget offenbar €15-17k (unrealistisch)<br><br>
+                        Empfehlung: Nicht zurückrufen.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section - Voss Objection Handling with Labeling -->
+    <section class="how-it-works" style="background: var(--light-gray);">
+        <div class="container">
+            <h2 class="section-title">Ihre Einwände. Verstanden.</h2>
             <div class="faq-grid">
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span class="faq-icon">❓</span>
-                        Klingt teuer.
+                        <span class="faq-icon">💰</span>
+                        Das klingt teuer.
                     </div>
                     <div class="faq-answer">
-                        <span style="color: var(--accent);">✅</span> Ein Azubi kostet €2.500/Monat + Sozialabgaben. Wir holen Ihnen 10 qualifizierte Termine für €500. Rechnen Sie aus: Ein durchgefallener Termin (Fahrt, Angebot, Zeit) kostet Sie leicht €150-200. Das amortisiert sich schnell.
+                        <span style="color: var(--accent);">✅</span> <strong>Das ist verständlich.</strong> Ein durchgefallener Termin (Fahrt, Angebot, Zeit) kostet Sie leicht €150-200. Wir holen Ihnen 10 qualifizierte Termine für €500. Schauen Sie unten beim Vergleich: Ein Azubi kostet €2.500/Monat + Sozialabgaben. Rechnen Sie selbst aus.
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span class="faq-icon">❓</span>
+                        <span class="faq-icon">⚖️</span>
                         DSGVO bei WhatsApp? Geht das denn?
                     </div>
                     <div class="faq-answer">
-                        <span style="color: var(--accent);">✅</span> Ja. Wir leiten nur weiter, was Sie brauchen: Name, Telefon, Grund. Keine Kundendaten speichern, kein Profilbau. Das ist rechtlich dasselbe wie wenn Ihre Sekretärin Ihnen eine Notiz auf den Schreibtisch legt. Einfach, sicher, legal.
+                        <span style="color: var(--accent);">✅</span> <strong>Sie machen sich sorgen.</strong> Das ist legitim. Aber: Wir leiten nur weiter, was Sie brauchen: Name, Telefon, Grund. Keine Kundendaten speichern, kein Profilbau. Das ist rechtlich dasselbe wie wenn Ihre Sekretärin Ihnen eine Notiz auf den Schreibtisch legt. Einfach, sicher, legal.
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span class="faq-icon">❓</span>
+                        <span class="faq-icon">🔓</span>
                         Was, wenn es nicht klappt?
                     </div>
                     <div class="faq-answer">
-                        <span style="color: var(--accent);">✅</span> Dann kündigen Sie. Monatlich kündbar, keine Mindestlaufzeit. Wir müssen uns jeden Monat neu beweisen. So sollte Service sein.
+                        <span style="color: var(--accent);">✅</span> <strong>Sie haben Angst festzustecken.</strong> Das wollen wir nicht. Monatlich kündbar, keine Mindestlaufzeit. Wir müssen uns jeden Monat neu beweisen. So sollte Service sein. Wenn Sie nicht zufrieden sind, gehen Sie. Keine Fragen.
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span class="faq-icon">❓</span>
+                        <span class="faq-icon">🎯</span>
                         Nur PV? Warum nicht alle Handwerker?
                     </div>
                     <div class="faq-answer">
-                        <span style="color: var(--accent);">✅</span> Weil wir darin gut sind. BAFA-Fristen, Speicherklassen, Notstromkonzepte - das können wir aus dem FF. Ein Dachdecker, ein Elektriker, ein Heizungsbauer: Generalisten helfen halb. Spezialisten helfen durch.
+                        <span style="color: var(--accent);">✅</span> <strong>Sie wollen Spezialisten.</strong> Das ist richtig. Generalisten helfen halb. Spezialisten helfen durch. BAFA-Fristen, Speicherklassen, Notstromkonzepte - das können wir aus dem FF. Ein Dachdecker, ein Elektriker, ein Heizungsbauer: Wir sind gut in einer Sache. Und das ist Ihr Vorteil.
                     </div>
                 </div>
                 <div class="faq-item">
                     <div class="faq-question">
-                        <span class="faq-icon">❓</span>
+                        <span class="faq-icon">⏱️</span>
                         Wie schnell geht das?
                     </div>
                     <div class="faq-answer">
-                        <span style="color: var(--accent);">✅</span> 7 Tage bis Go-Live. Tag 1-2: Einrichtung WhatsApp, Anrufbeantworter-Text. Tag 3-4: Schulung, FAQ-Liste Ihre Projekte. Tag 5-7: Testphase, erste Live-Anrufe. Danach läuft's.
+                        <span style="color: var(--accent);">✅</span> <strong>Sie haben keine Zeit für Wochen-Tests.</strong> Verstanden. 7 Tage bis Go-Live. Tag 1-2: Einrichtung WhatsApp, Anrufbeantworter-Text. Tag 3-4: Schulung, FAQ-Liste Ihre Projekte. Tag 5-7: Testphase, erste Live-Anrufe. Danach läuft's.
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Pricing Section -->
+    <!-- Pricing Section - Voss Ackerman Strategy -->
     <section class="pricing" id="preise">
         <div class="container">
-            <h2 class="section-title">Klar und ehrlich</h2>
+            <h2 class="section-title">Was Sie verlieren. Was Sie gewinnen.</h2>
+
+            <!-- Loss Frame First -->
+            <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <p style="font-size: 1rem; margin-bottom: 0.5rem;"><strong>Ohne uns:</strong></p>
+                <ul style="text-align: left; list-style: none; padding: 0;">
+                    <li style="padding: 0.3rem 0;">❌ 3-4 verpasste Anrufe pro Woche</li>
+                    <li style="padding: 0.3rem 0;">❌ €2.000+ Umsatzverlust pro Monat</li>
+                    <li style="padding: 0.3rem 0;">❌ 10+ Stunden Abendsarbeit pro Monat</li>
+                </ul>
+            </div>
+
             <div class="pricing-box">
+                <div style="color: #ef4444; font-size: 1.1rem; margin-bottom: 0.5rem; text-decoration: line-through; opacity: 0.7;">€2.500+/Monat (Azubi)</div>
                 <div class="price-main">€50 pro qualifiziertem Termin</div>
                 <div class="price-sub">Keine Grundgebühr - nur bei Erfolg</div>
 
                 <ul class="price-features">
                     <li>✓ Nur zahlen, wenn wir einen echten Termin für Sie rausarbeiten</li>
                     <li>✓ Einmalig €99 Einrichtung (WhatsApp-Nummer, Anrufbeantworter-Text, Skripte)</li>
-                    <li>✓ Weniger als ein Azubi pro Stunde</li>
-                    <li>✓ Monatlich kündbar</li>
+                    <li>✓ Monatlich kündbar, keine Mindestlaufzeit</li>
                     <li>✓ Keine versteckten Kosten</li>
                 </ul>
 
                 <a href="#kontakt" class="pricing-cta">Jetzt starten - Erste Anrufe morgen</a>
             </div>
 
+            <!-- Pricing Comparison Chart -->
+            <div class="pricing-comparison">
+                <h3 style="text-align: center; color: var(--primary); margin-bottom: 1.5rem;">Vergleich: Azubi vs. VorzimmerDrache</h3>
+                <div class="pricing-row">
+                    <div class="pricing-option"><strong>Kostenpunkt</strong></div>
+                    <div class="pricing-option">Azubi</div>
+                    <div class="pricing-option highlight"><strong>VorzimmerDrache</strong></div>
+                </div>
+                <div class="pricing-row">
+                    <div class="pricing-option">Monatliche Kosten</div>
+                    <div class="pricing-option">€2.500+</div>
+                    <div class="pricing-option highlight"><strong>€500</strong></div>
+                </div>
+                <div class="pricing-row">
+                    <div class="pricing-option">Einarbeitungszeit</div>
+                    <div class="pricing-option"><span class="pricing-cross">✗</span> 3-6 Monate</div>
+                    <div class="pricing-option highlight"><span class="pricing-check">✓</span> 7 Tage</div>
+                </div>
+                <div class="pricing-row">
+                    <div class="pricing-option">Fachwissen PV</div>
+                    <div class="pricing-option"><span class="pricing-cross">✗</span> Nein</div>
+                    <div class="pricing-option highlight"><span class="pricing-check">✓</span> Ja</div>
+                </div>
+                <div class="pricing-row">
+                    <div class="pricing-option">Kündbarkeit</div>
+                    <div class="pricing-option"><span class="pricing-cross">✗</span> 12 Monate</div>
+                    <div class="pricing-option highlight"><span class="pricing-check">✓</span> Monatlich</div>
+                </div>
+                <div class="pricing-row">
+                    <div class="pricing-option">Sozialabgaben</div>
+                    <div class="pricing-option"><span class="pricing-cross">✗</span> +20%</div>
+                    <div class="pricing-option highlight"><span class="pricing-check">✓</span> Keine</div>
+                </div>
+                <div class="pricing-row">
+                    <div class="pricing-option">Erfolgsabhängig</div>
+                    <div class="pricing-option"><span class="pricing-cross">✗</span> Nein</div>
+                    <div class="pricing-option highlight"><span class="pricing-check">✓</span> Ja</div>
+                </div>
+            </div>
+
             <div style="margin-top: 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; align-items: center;">
-                <img src="images/solar-panels.jpg" alt="Fertig installierte Solaranlage - Ihr Erfolg" 
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"
-                     width="400" height="200" loading="lazy">
-                <img src="images/warehouse.jpg" alt="Lager und Logistik" 
-                     style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"
-                     width="400" height="200" loading="lazy">
+                <div class="image-container">
+                    <img src="images/solar-panels.jpg" alt="Fertig installierte Solaranlage - Ihr Erfolg"
+                         width="400" height="200" loading="lazy">
+                </div>
+                <div class="image-container">
+                    <img src="images/warehouse.jpg" alt="Lager und Logistik"
+                         width="400" height="200" loading="lazy">
+                </div>
                 <div style="padding: 1rem;">
                     <p style="font-size: 1.1rem; font-weight: 600; color: var(--primary);">Jeder Termin zählt</p>
                     <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--medium-gray);">Jeder Termin den wir vereinbaren, ist eine Anlage mehr auf dem Dach.</p>
@@ -896,7 +1336,7 @@
                     <div style="background: rgba(201, 169, 98, 0.2); padding: 1rem; border-radius: 4px; margin-top: 1rem;">
                         <div style="font-size: 0.9rem; color: var(--accent);">Geretteter Umsatz (80%)</div>
                         <div id="geretteterUmsatz" style="font-size: 2rem; font-weight: 700; color: var(--accent);">€10.240</div>
-                        <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Unsere Kosten: €500 (10 Termine à €50)</div>
+                        <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.5rem;">Investition: 10 Termine × €50 = €500</div>
                     </div>
                 </div>
             </div>
@@ -933,44 +1373,22 @@
             <h2 class="section-title">Was Kollegen sagen</h2>
             <div class="testimonial-grid">
                 <div class="testimonial-item">
+                    <img src="images/electrician.jpg" alt="Thomas M." class="testimonial-avatar" loading="lazy" width="60" height="60">
                     <div class="testimonial-company">Thomas M., PV-Meisterbetrieb, Augsburg</div>
                     <div class="testimonial-info">12 Mitarbeiter</div>
                     <p class="testimonial-quote">"Früher hab ich abends zurückgerufen. Die Hälfte hatte schon 'nen anderen Betrieb. Mit dem Service hol ich mir Leads, die sonst weg waren. Letzten Monat 3 zusätzliche Aufträge draus."</p>
                 </div>
                 <div class="testimonial-item">
+                    <div class="avatar-placeholder">SK</div>
                     <div class="testimonial-company">Stefan K., Solarbau, Ostwestfalen</div>
                     <div class="testimonial-info">5 Mitarbeiter</div>
                     <p class="testimonial-quote">"Meine Frau macht die Bürokram. Die hats satt, jeden das Gleiche zu erklären. Seitdem das hier läuft, kommt nur noch was Relevantes bei uns an. Keine Zeitverschwendung mehr."</p>
                 </div>
                 <div class="testimonial-item">
+                    <img src="images/customer.jpg" alt="Robert W." class="testimonial-avatar" loading="lazy" width="60" height="60">
                     <div class="testimonial-company">Robert W., Dachdecker mit PV-Sparte, Hamburg</div>
                     <div class="testimonial-info">8 Mitarbeiter</div>
                     <p class="testimonial-quote">"Bin skeptisch gewesen. Outsourcing und so. Aber: Ein Azubi kostet €2.500 im Monat und bracht 3 Monate bis er was taugt. Hier läuft es von Tag 1. Und ich muss niemanden einarbeiten."</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Objection Handling -->
-    <section class="pain-points" style="background: var(--white);">
-        <div class="container">
-            <h2 class="section-title">Ihre Einwände. Ehrliche Antworten.</h2>
-            <div class="pain-grid">
-                <div class="pain-item">
-                    <h3>"Klingt teuer."</h3>
-                    <p>Ein Azubi kostet €2.500/Monat. Wir holen Ihnen 10 Termine für €500. Rechnen Sie selbst aus, was ein durchgefallener Termin Sie kostet.</p>
-                </div>
-                <div class="pain-item">
-                    <h3>"Können wir nicht selbst?"</h3>
-                    <p>Klar, wenn Sie abends noch 2 Stunden Excel aktualisieren und Anrufe zurückrufen wollen. Ihr Handwerk verlangt Aufmerksamkeit auf dem Dach, nicht im Telefonbuch.</p>
-                </div>
-                <div class="pain-item">
-                    <h3>"Was ist mit unserem Sekretariat?"</h3>
-                    <p>Die hat schon genug mit Buchhaltung, Angeboten und Lohnabrechnung zu tun. Zwischenanrufe von Zeitverschwendern stören nur. Wir filtern, Ihre Sekretärin arbeitet weiter.</p>
-                </div>
-                <div class="pain-item">
-                    <h3>"Kein Vertrag? Was ist, wenn es nicht klappt?"</h3>
-                    <p>Genau das ist der Punkt. Kündigen Sie einfach. Wir müssen Sie jeden Monat von unserer Qualität überzeugen. So sollte das sein.</p>
                 </div>
             </div>
         </div>
@@ -1020,77 +1438,37 @@
         </div>
     </section>
 
-    <!-- WhatsApp Examples -->
-    <section class="how-it-works" style="background: var(--light-gray);">
-        <div class="container">
-            <h2 class="section-title">So sehen die WhatsApp-Nachrichten aus</h2>
-            <div class="pain-grid" style="margin-top: 2rem;">
-                <div class="pain-item">
-                    <h3>🔴 Wichtiger Rückruf</h3>
-                    <p style="font-family: monospace; font-size: 0.9rem; background: #f9fafb; padding: 1rem; border-radius: 4px;">
-                        Herr Meyer ruft wegen laufender BAFA-Frist an.<br>
-                        Rufen Sie zurück: 0171 12345678<br><br>
-                        Details:<br>
-                        • BAFA-Antrag läuft in 10 Tagen ab<br>
-                        • 8kWp geplant, Eigenbedarf<br>
-                        • Dach geprüft, Baurecht vorhanden<br>
-                        • Budget: €20-25k<br><br>
-                        Dringlichkeit: HOCH
-                    </p>
-                </div>
-                <div class="pain-item">
-                    <h3>📊 Tageszusammenfassung</h3>
-                    <p style="font-family: monospace; font-size: 0.9rem; background: #f9fafb; padding: 1rem; border-radius: 4px;">
-                        HEUTE: 12 Anrufe, 3 wichtige, 1 Termin<br><br>
-                        Wichtige Rückrufe:<br>
-                        1. Schmidt - 6kWp, Deckungserklärung liegt vor<br>
-                        2. Wegener - 3 Dächer Nachbarschaftsprojekt<br>
-                        3. Bauer - Gewerbehalle 30kWp, dringend<br><br>
-                        Termin bestätigt:<br>
-                        Sa 10:00 - Meier, Dachsanierung + 5kWp
-                    </p>
-                </div>
-                <div class="pain-item">
-                    <h3>❌ Gefiltert (Zeitfresser)</h3>
-                    <p style="font-family: monospace; font-size: 0.9rem; background: #f9fafb; padding: 1rem; border-radius: 4px;">
-                        Anruf abgewiesen - Schmidt<br><br>
-                        Details:<br>
-                        • Kein Baurecht nachgefragt<br>
-                        • Will "schnell mal Preis" ohne Besichtigung<br>
-                        • Vergleicht 5 Anbieter gleichzeitig<br>
-                        • Budget offenbar €15-17k (unrealistisch)<br><br>
-                        Empfehlung: Nicht zurückrufen.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Trust Signals -->
     <section class="pain-points">
         <div class="container">
             <h2 class="section-title">Warum Sie uns vertrauen können</h2>
             <div style="margin-bottom: 2rem; text-align: center;">
-                <img src="images/planning.jpg" alt="Professionelle Planung und Organisation" 
-                     style="width: 100%; max-width: 800px; height: 300px; object-fit: cover; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"
-                     width="800" height="300" loading="lazy">
+                <div class="image-container" style="max-width: 800px; margin: 0 auto;">
+                    <img src="images/team-meeting.jpg" alt="Professionelle Planung und Organisation"
+                         width="800" height="300" loading="lazy">
+                </div>
             </div>
+
             <div class="pain-grid">
                 <div class="pain-item">
-                    <h3>Wir sind aus Bayern, nicht aus Bangalore</h3>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🇩🇪</div>
+                    <h3>Aus Bayern, nicht aus Bangalore</h3>
                     <p>Ihr Ansprechpartner sitzt in Deutschland und hat selbst Handwerker-Background. Kein Callcenter in Osteuropa, kein "I understand your concern".</p>
                 </div>
                 <div class="pain-item">
-                    <h3>Datenschutz wie beim Handwerkskammer-Portal</h3>
-                    <p>Ihre Kundendaten landen nicht bei Dritten. Wir nutzen die gleichen Standards wie jede seriöse deutsche Verwaltung. DSGVO ist für uns Pflicht, kein Marketing-Schlagwort.</p>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔒</div>
+                    <h3>DSGVO wie beim Handwerkskammer-Portal</h3>
+                    <p>Ihre Kundendaten landen nicht bei Dritten. Wir nutzen die gleichen Standards wie jede seriöse deutsche Verwaltung. TLS-Verschlüsselung wie beim Online-Banking.</p>
                 </div>
                 <div class="pain-item">
-                    <h3>Sicher wie Online-Banking</h3>
-                    <p>Alle Verbindungen und Datenübertragungen laufen TLS-verschlüsselt. Genau wie bei Ihrer Bank. Hacker haben hier nichts zu suchen.</p>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">💰</div>
+                    <h3>Transparente Preise, keine Überraschungen</h3>
+                    <p>Was wir versprechen, halten wir. Keine versteckten Gebühren, keine Zusatzkosten. Monatlich kündbar ohne Wenn und Aber.</p>
                 </div>
                 <div class="pain-item">
-                    <h3>Echte Preise, keine Versteckten</h3>
-                    <p>Sie lesen €50 pro Termin, Sie zahlen €50 pro Termin. Keine Setup-Gebühren, keine Einrichtungskosten, keine Kleinzeug-Zusatzgebühren. So einfach.</p>
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚡</div>
+                    <h3>7-Tage Go-Live Garantie</h3>
+                    <p>Wenn nicht in 7 Tagen alles läuft, zahlen Sie das Setup nicht. Wir stehen hinter unserem Service.</p>
                 </div>
             </div>
         </div>
@@ -1107,7 +1485,7 @@
                 <a href="agb.html">AGB</a>
             </p>
             <p style="margin-top: 1rem; font-size: 0.75rem;">
-                © 2025 VorzimmerDrache - Ein Angebot der Linda Trading UG (haftungsbeschränkt)<br>
+                © 2026 VorzimmerDrache - Ein Angebot der Linda Trading UG (haftungsbeschränkt)<br>
                 Schleidener Str. 6, 50937 Köln | info@ecolinda.com | +49 177 7250 851<br>
                 HRB 97024 Amtsgericht Köln | USt-IdNr: DE 322254850
             </p>

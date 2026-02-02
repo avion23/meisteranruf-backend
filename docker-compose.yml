@@ -63,6 +63,7 @@ services:
       - EXECUTIONS_DATA_MAX_AGE=168
       - DB_TYPE=sqlite
       - N8N_RUNNERS_ENABLED=false
+      - N8N_TASK_RUNNERS_AUTH_TOKEN=${N8N_ENCRYPTION_KEY}
       - N8N_OAUTH_CALLBACK_REQUIRES_AUTH=false
       - DB_SQLITE_PRAGMAS=journal_mode=WAL;busy_timeout=60000;synchronous=NORMAL;temp_store=MEMORY;wal_autocheckpoint=100
       - N8N_CONCURRENCY_PRODUCTION_LIMIT=1
