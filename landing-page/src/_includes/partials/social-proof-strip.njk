@@ -1,0 +1,101 @@
+<style>
+    .social-proof-strip {
+        background: var(--light-gray);
+        padding: 2.5rem 0;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    .social-proof-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    .social-proof-item {
+        background: var(--white);
+        padding: 1.25rem;
+        border-radius: 6px;
+        border-left: 3px solid var(--accent);
+        transition: transform 0.2s ease;
+    }
+    .social-proof-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.1);
+    }
+    .social-proof-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+    }
+    .social-proof-company {
+        font-size: 0.8rem;
+        color: var(--medium-gray);
+        margin-bottom: 0.75rem;
+        font-style: italic;
+    }
+    .social-proof-quote {
+        font-size: 0.85rem;
+        color: var(--dark-gray);
+        line-height: 1.4;
+        font-style: italic;
+    }
+    .social-proof-link {
+        display: inline-block;
+        margin-top: 1.5rem;
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    .social-proof-link:hover {
+        text-decoration: underline;
+    }
+    .social-proof-strip .section-title {
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    .social-proof-subtitle {
+        text-align: center;
+        color: var(--dark-gray);
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+    @media (max-width: 768px) {
+        .social-proof-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<section class="social-proof-strip">
+    <div class="container">
+        <h2 class="section-title">Das sagen PV-Installateure</h2>
+        <p class="social-proof-subtitle">Über 30 Betriebe vertrauen uns bereits</p>
+
+        <div class="social-proof-grid">
+            <div class="social-proof-item">
+                <div class="social-proof-name">Thomas M.</div>
+                <div class="social-proof-company">PV-Meisterbetrieb, Augsburg</div>
+                <p class="social-proof-quote">"Früher hab ich abends zurückgerufen. Die Hälfte hatte schon 'nen anderen Betrieb. Letzten Monat 3 zusätzliche Aufträge draus."</p>
+            </div>
+
+            <div class="social-proof-item">
+                <div class="social-proof-name">Stefan K.</div>
+                <div class="social-proof-company">Solarbau, Ostwestfalen</div>
+                <p class="social-proof-quote">"Meine Frau macht die Bürokram. Die hats satt, jeden das Gleiche zu erklären. Seitdem das hier läuft, kommt nur noch was Relevantes bei uns an."</p>
+            </div>
+
+            <div class="social-proof-item">
+                <div class="social-proof-name">Robert W.</div>
+                <div class="social-proof-company">Dachdecker mit PV-Sparte, Hamburg</div>
+                <p class="social-proof-quote">"Ein Azubi kostet €2.500 im Monat und braucht 3-6 Monate Einarbeitung. Hier läuft es von Tag 1. Ohne Management-Overhead."</p>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="#was-kollegen-sagen" class="social-proof-link">
+                ↓ Mehr Erfahrungsberichte lesen
+            </a>
+        </div>
+    </div>
+</section>

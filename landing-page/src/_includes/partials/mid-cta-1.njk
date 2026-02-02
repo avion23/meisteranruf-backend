@@ -1,0 +1,95 @@
+<style>
+    .mid-cta-1 {
+        background: linear-gradient(135deg, var(--primary) 0%, #1e3a5f 100%);
+        padding: 3rem 0;
+        text-align: center;
+        border-top: 3px solid var(--accent);
+        border-bottom: 3px solid var(--accent);
+    }
+    .mid-cta-1 h2 {
+        color: var(--white);
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    .mid-cta-1 p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .mid-cta-1 .cta-button {
+        display: inline-block;
+        background: var(--accent);
+        color: var(--white);
+        padding: 1rem 2.5rem;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.15rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
+    }
+    .mid-cta-1 .cta-button:hover {
+        background: var(--accent-darker);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+    }
+    .mid-cta-1 .trust-badges {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    .mid-cta-1 .trust-badge {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .mid-cta-1 .trust-badge img {
+        width: 20px;
+        height: 20px;
+        filter: brightness(0) invert(1);
+    }
+    @media (max-width: 768px) {
+        .mid-cta-1 h2 {
+            font-size: 1.4rem;
+        }
+        .mid-cta-1 p {
+            font-size: 1rem;
+            padding: 0 1rem;
+        }
+        .mid-cta-1 .cta-button {
+            padding: 0.9rem 2rem;
+            font-size: 1rem;
+        }
+    }
+</style>
+
+<section class="mid-cta-1">
+    <div class="container">
+        <h2>7 Tage kostenlos testen</h2>
+        <p>Keine Kreditkarte erforderlich. Erhalte erste Anruf-Anfragen schon morgen.</p>
+        <a href="#kontakt" class="cta-button">Jetzt kostenlos starten</a>
+
+        <div class="trust-badges">
+            <div class="trust-badge">
+                <img src="/assets/images/icon_check.webp" alt="" width="20" height="20" loading="lazy">
+                <span>Keine Verpflichtung</span>
+            </div>
+            <div class="trust-badge">
+                <img src="/assets/images/icon_lightning.webp" alt="" width="20" height="20" loading="lazy">
+                <span>In 7 Tagen live</span>
+            </div>
+            <div class="trust-badge">
+                <img src="/assets/images/icon_lock.webp" alt="" width="20" height="20" loading="lazy">
+                <span>DSGVO-konform</span>
+            </div>
+        </div>
+    </div>
+</section>
