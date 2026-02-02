@@ -5,7 +5,78 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Anruf-Service für PV-Installateure. Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik und BAFA-Fristen.">
     <meta name="keywords" content="PV-Service, Telefonsekretariat Photovoltaik, Anrufservice Installateure, BAFA Frist, Solar-Telefon service">
-    <link rel="canonical" href="https://vorzimmerdrache.pages.dev/">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="canonical" href="/">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://vorzimmerdrache.pages.dev/">
+    <meta property="og:title" content="Anruf-Service für PV-Installateure | Wir kennen die BAFA-Frist">
+    <meta property="og:description" content="Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik, Speichersysteme und BAFA-Fristen. Erste Anrufe morgen möglich.">
+    <meta property="og:image" content="https://vorzimmerdrache.pages.dev/images/hero-pv.jpg">
+    <meta property="og:locale" content="de_DE">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://vorzimmerdrache.pages.dev/">
+    <meta name="twitter:title" content="Anruf-Service für PV-Installateure | Wir kennen die BAFA-Frist">
+    <meta name="twitter:description" content="Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik und BAFA-Fristen.">
+    <meta name="twitter:image" content="https://vorzimmerdrache.pages.dev/images/hero-pv.jpg">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "VorzimmerDrache",
+      "description": "Anruf-Service für PV-Installateure. Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind.",
+      "url": "https://vorzimmerdrache.pages.dev/",
+      "telephone": "+49 177 7250 851",
+      "email": "info@ecolinda.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Schleidener Str. 6",
+        "addressLocality": "Köln",
+        "postalCode": "50937",
+        "addressCountry": "DE"
+      },
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "Linda Trading UG (haftungsbeschränkt)",
+        "legalName": "Linda Trading UG (haftungsbeschränkt)",
+        "taxID": "DE 322254850",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Schleidener Str. 6",
+          "addressLocality": "Köln",
+          "postalCode": "50937",
+          "addressCountry": "DE"
+        }
+      },
+      "priceRange": "€50 pro qualifiziertem Termin",
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ],
+        "opens": "08:00",
+        "closes": "18:00"
+      },
+      "areaServed": {
+        "@type": "Country",
+        "name": "Germany"
+      },
+      "inLanguage": "de"
+    }
+    </script>
 
     <title>Anruf-Service für PV-Installateure | Wir kennen die BAFA-Frist</title>
 
@@ -19,12 +90,14 @@
         :root {
             --primary: #0f172a;
             --primary-dark: #0a0f1c;
-            --accent: #c9a962;
-            --accent-darker: #a67c00;
+            --accent: #b8860b;
+            --accent-darker: #9a7009;
             --white: #ffffff;
             --light-gray: #f1f3f4;
-            --medium-gray: #9ca3af;
+            --medium-gray: #6b7280;
             --dark-gray: #374151;
+            --footer-text-light: #d1d5db;
+            --hero-subline: #e5e7eb;
         }
 
         body {
@@ -32,6 +105,28 @@
             line-height: 1.5;
             color: var(--dark-gray);
             background: var(--white);
+        }
+
+        /* Skip link for keyboard navigation */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: var(--primary);
+            color: white;
+            padding: 8px 16px;
+            z-index: 100;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+
+        /* Focus indicators for keyboard users */
+        :focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
         }
 
         .container {
@@ -93,7 +188,7 @@
 
         .hero-subline {
             font-size: 1.15rem;
-            color: #d1d5db;
+            color: var(--hero-subline);
             margin-bottom: 2rem;
             max-width: 700px;
         }
@@ -470,14 +565,14 @@
         /* Footer */
         footer {
             background: var(--primary-dark);
-            color: #9ca3af;
+            color: var(--footer-text-light);
             padding: 2rem 0;
             text-align: center;
             font-size: 0.85rem;
         }
 
         footer a {
-            color: #9ca3af;
+            color: var(--footer-text-light);
             text-decoration: none;
             margin: 0 0.5rem;
         }
@@ -547,13 +642,16 @@
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="container">
-            <div class="logo">Vorzimmer<span>Drache</span></div>
-            <a href="#kontakt" class="nav-cta">Jetzt einrichten</a>
-        </div>
-    </nav>
+     <!-- Skip Link -->
+     <a href="#kontakt" class="skip-link">Direkt zum Kontaktformular</a>
+
+     <!-- Navigation -->
+     <nav role="navigation" aria-label="Hauptnavigation">
+         <div class="container">
+             <div class="logo">Vorzimmer<span>Drache</span></div>
+             <a href="#kontakt" class="nav-cta">Jetzt einrichten</a>
+         </div>
+     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -916,8 +1014,8 @@
                         <span>Ich stimme zu, dass meine Angaben zur Kontaktaufnahme gespeichert und verarbeitet werden. Ich habe die <a href="datenschutz.html" target="_blank" style="color: var(--accent);">Datenschutzerklärung</a> gelesen. *</span>
                     </label>
                 </div>
-                <button type="submit" class="submit-btn">Anruf anfordern</button>
-                <div id="formFeedback" style="margin-top: 1rem;"></div>
+                 <button type="submit" class="submit-btn">Anruf anfordern</button>
+                 <div id="formFeedback" role="alert" aria-live="assertive" style="margin-top: 1rem;"></div>
             </form>
         </div>
     </section>
