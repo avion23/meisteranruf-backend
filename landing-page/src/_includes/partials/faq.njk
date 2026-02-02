@@ -1,0 +1,36 @@
+<style>
+    .faq-grid {
+        display: grid; gap: 1.5rem; margin-top: 2rem;
+    }
+    .faq-item {
+        background: var(--white); padding: 1.5rem; border-radius: 4px;
+        border-left: 4px solid var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .faq-question {
+        font-size: 1.1rem; font-weight: 700; color: var(--primary);
+        margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .faq-answer {
+        font-size: 0.95rem; color: var(--dark-gray); line-height: 1.5;
+    }
+    .faq-icon { font-size: 1.2rem; }
+</style>
+
+<section style="padding: 3rem 0; background: var(--light-gray);" id="faq">
+    <div class="container">
+        <h2 class="section-title">Ihre Einwände. Verstanden.</h2>
+        <div class="faq-grid">
+            {% for item in faq.items %}
+            <div class="faq-item">
+                <div class="faq-question">
+                    <span class="faq-icon">{{ item.icon }}</span>
+                    {{ item.question }}
+                </div>
+                <div class="faq-answer">
+                    <span style="color: var(--accent);">✅</span> <strong>{{ item.label }}</strong> {{ item.answer }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

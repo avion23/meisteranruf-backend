@@ -1,0 +1,59 @@
+<style>
+    .pain-points { padding: 3rem 0; background: var(--light-gray); }
+    .before-after-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem; margin-top: 2rem;
+    }
+    .comparison-pair {
+        background: var(--white); border-radius: 4px; overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .comparison-before {
+        padding: 1.5rem; background: #fee2e2; border-bottom: 1px solid #fecaca;
+    }
+    .comparison-after { padding: 1.5rem; background: #d1fae5; }
+    .comparison-image {
+        width: 100%; height: 200px; object-fit: cover; border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+    .comparison-placeholder {
+        width: 100%; height: 200px; display: flex; align-items: center;
+        justify-content: center; border-radius: 4px; margin-bottom: 1rem; font-size: 4rem;
+    }
+    .comparison-icon { font-size: 1.2rem; margin-right: 0.5rem; }
+    .comparison-text { font-size: 0.95rem; line-height: 1.4; }
+</style>
+
+<section class="pain-points" id="problem">
+    <div class="container">
+        <h2 class="section-title">❌ Vorher → ✅ Nachher</h2>
+        <div class="before-after-grid">
+            {% for item in painpoints.items %}
+            <div class="comparison-pair">
+                <div class="comparison-before">
+                    {% if item.beforeImage %}
+                        <img src="{{ item.beforeImage }}" alt="{{ item.beforeTitle }}" class="comparison-image" loading="lazy" width="400" height="200">
+                    {% else %}
+                        <div class="comparison-placeholder" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+                            <span>{{ item.beforeIcon }}</span>
+                        </div>
+                    {% endif %}
+                    <span class="comparison-icon">❌</span>
+                    <span class="comparison-text"><strong>{{ item.beforeTitle }}:</strong> {{ item.beforeText }}</span>
+                </div>
+                <div class="comparison-after">
+                    {% if item.afterImage %}
+                        <img src="{{ item.afterImage }}" alt="{{ item.afterTitle }}" class="comparison-image" loading="lazy" width="400" height="200">
+                    {% else %}
+                        <div class="comparison-placeholder" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);">
+                            <span>{{ item.afterIcon }}</span>
+                        </div>
+                    {% endif %}
+                    <span class="comparison-icon">✅</span>
+                    <span class="comparison-text"><strong>{{ item.afterTitle }}:</strong> {{ item.afterText }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

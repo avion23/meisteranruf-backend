@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "name": "Thomas M.",
+      "company": "PV-Meisterbetrieb, Augsburg",
+      "size": "12 Mitarbeiter",
+      "avatar": "images/electrician.jpg",
+      "quote": "Früher hab ich abends zurückgerufen. Die Hälfte hatte schon 'nen anderen Betrieb. Mit dem Service hol ich mir Leads, die sonst weg waren. Letzten Monat 3 zusätzliche Aufträge draus."
+    },
+    {
+      "name": "Stefan K.",
+      "company": "Solarbau, Ostwestfalen",
+      "size": "5 Mitarbeiter",
+      "avatar": null,
+      "initials": "SK",
+      "quote": "Meine Frau macht die Bürokram. Die hats satt, jeden das Gleiche zu erklären. Seitdem das hier läuft, kommt nur noch was Relevantes bei uns an. Keine Zeitverschwendung mehr."
+    },
+    {
+      "name": "Robert W.",
+      "company": "Dachdecker mit PV-Sparte, Hamburg",
+      "size": "8 Mitarbeiter",
+      "avatar": "images/customer.jpg",
+      "quote": "Bin skeptisch gewesen. Aber ein Azubi kostet €2.500 im Monat und braucht 3-6 Monate Einarbeitung. Dann kommen Berufsschule, Krankheit und die Nerven, wenn er Fehler macht. Hier läuft es von Tag 1. Ohne Management-Overhead."
+    }
+  ]
+}

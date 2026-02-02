@@ -1,0 +1,58 @@
+{
+  "site": {
+    "title": "Anruf-Service für PV-Installateure | Wir kennen die BAFA-Frist",
+    "url": "https://vorzimmerdrache.pages.dev/",
+    "locale": "de_DE",
+    "language": "de"
+  },
+  "meta": {
+    "description": "Anruf-Service für PV-Installateure. Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik und BAFA-Fristen.",
+    "keywords": "PV-Service, Telefonsekretariat Photovoltaik, Anrufservice Installateure, BAFA Frist, Solar-Telefon service",
+    "robots": "index, follow, max-image-preview:large",
+    "canonical": "/"
+  },
+  "openGraph": {
+    "type": "website",
+    "url": "https://vorzimmerdrache.pages.dev/",
+    "title": "Anruf-Service für PV-Installateure | Wir kennen die BAFA-Frist",
+    "description": "Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik, Speichersysteme und BAFA-Fristen. Erste Anrufe morgen möglich.",
+    "image": "https://vorzimmerdrache.pages.dev/images/hero-pv.jpg",
+    "locale": "de_DE"
+  },
+  "twitterCard": {
+    "card": "summary_large_image",
+    "url": "https://vorzimmerdrache.pages.dev/",
+    "title": "Anruf-Service für PV-Installateure | Wir kennen die BAFA-Frist",
+    "description": "Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik und BAFA-Fristen.",
+    "image": "https://vorzimmerdrache.pages.dev/images/hero-pv.jpg"
+  },
+  "favicon": {
+    "ico": "/favicon.ico",
+    "appleTouchIcon": "/apple-touch-icon.png"
+  },
+  "structuredData": {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "VorzimmerDrache",
+    "description": "Anruf-Service für PV-Installateure. Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind.",
+    "url": "https://vorzimmerdrache.pages.dev/",
+    "telephone": "+49 177 7250 851",
+    "email": "info@ecolinda.com",
+    "priceRange": "€50 pro qualifiziertem Termin",
+    "areaServed": {
+      "@type": "Country",
+      "name": "Germany"
+    },
+    "inLanguage": "de"
+  },
+  "cookieBanner": {
+    "message": "Wir verwenden ausschließlich technisch notwendige Cookies für das Kontaktformular. Kein Tracking. Keine Werbung.",
+    "linkText": "Mehr erfahren",
+    "linkUrl": "datenschutz.html",
+    "buttonText": "Verstanden"
+  },
+  "analytics": {
+    "provider": "Cloudflare Web Analytics",
+    "activationNote": "activate at dash.cloudflare.com"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "VorzimmerDrache",
+  "tagline": "Anruf-Service für PV-Installateure",
+  "slogan": "Wir kennen die BAFA-Frist",
+  "url": "https://vorzimmerdrache.pages.dev/",
+  "phone": "+49 177 7250 851",
+  "email": "info@ecolinda.com",
+  "address": {
+    "street": "Schleidener Str. 6",
+    "city": "Köln",
+    "zip": "50937",
+    "country": "DE"
+  },
+  "legal": {
+    "company": "Linda Trading UG (haftungsbeschränkt)",
+    "taxId": "DE 322254850",
+    "court": "HRB 97024 Amtsgericht Köln"
+  },
+  "meta": {
+    "description": "Anruf-Service für PV-Installateure. Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik und BAFA-Fristen.",
+    "keywords": "PV-Service, Telefonsekretariat Photovoltaik, Anrufservice Installateure, BAFA Frist, Solar-Telefon service",
+    "locale": "de_DE"
+  },
+  "calibratedQuestions": [
+    {
+      "question": "...Sie drei weitere BAFA-Fristen verpassen?",
+      "answer": "Das sind 3 Kunden, die nie zurückkommen. Die erzählen das weiter. Ihr Ruf leidet."
+    },
+    {
+      "question": "...Sie 2 Stunden pro Tag weniger am Dach sind?",
+      "answer": "2 Stunden × 20 Arbeitstage = 40 Stunden weniger Umsatz pro Monat. Das kostet Sie mehr als unser gesamter Service."
+    },
+    {
+      "question": "...Ihr Wettbewerber die Anrufe annimmt?",
+      "answer": "Kunden warten nicht. Die rufen den nächsten Betrieb an. Und der nächste ist schneller."
+    },
+    {
+      "question": "...Sie abends noch Rückrufe machen?",
+      "answer": "Akku leer, Familie wartet. Morgen sind Sie müde. Auf dem Dach gefährlich."
+    }
+  ]
+}

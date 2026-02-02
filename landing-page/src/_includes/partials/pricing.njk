@@ -1,0 +1,111 @@
+<style>
+    .pricing {
+        padding: 3rem 0; background: var(--primary); color: var(--white); text-align: center;
+    }
+    .pricing .section-title { color: var(--white); }
+    .pricing-box {
+        background: var(--white); color: var(--dark-gray); max-width: 500px;
+        margin: 2rem auto 0; padding: 2rem; border-radius: 4px; border: 3px solid var(--accent);
+    }
+    .price-main {
+        font-size: 2.5rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;
+    }
+    .price-sub {
+        font-size: 1rem; color: var(--medium-gray); margin-bottom: 1.5rem;
+    }
+    .price-features { text-align: left; margin-bottom: 2rem; }
+    .price-features li {
+        padding: 0.5rem 0; border-bottom: 1px solid #e5e7eb; font-size: 0.95rem;
+    }
+    .price-features li:last-child { border-bottom: none; }
+    .pricing-cta {
+        display: inline-block; background: var(--accent); color: var(--white);
+        padding: 1rem 2rem; text-decoration: none; font-weight: 700; font-size: 1rem;
+        width: 100%;
+    }
+    .pricing-cta:hover { background: var(--accent-darker); }
+    .pricing-comparison {
+        background: white; border-radius: 8px; padding: 2rem; margin-top: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    .pricing-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 1rem 0; border-bottom: 1px solid #e5e7eb;
+    }
+    .pricing-row:last-child { border-bottom: none; }
+    .pricing-option { flex: 1; text-align: center; }
+    .pricing-option.highlight {
+        background: rgba(184, 134, 11, 0.1); border-radius: 8px;
+        padding: 1rem; margin: -1rem;
+    }
+    .pricing-check { color: #10b981; font-size: 1.5rem; }
+    .pricing-cross { color: #ef4444; font-size: 1.5rem; }
+    @media (max-width: 768px) {
+        .pricing-row { flex-wrap: wrap; }
+        .pricing-option { flex: 1 1 100%; padding: 0.5rem 0; }
+        .pricing-option.highlight { background: transparent; margin: 0; }
+    }
+</style>
+
+<section class="pricing" id="preise">
+    <div class="container">
+        <h2 class="section-title">Was Sie verlieren. Was Sie gewinnen.</h2>
+
+        <div style="background: rgba(239, 68, 68, 0.1); padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            <p style="font-size: 1rem; margin-bottom: 0.5rem;"><strong>Ohne uns:</strong></p>
+            <ul style="text-align: left; list-style: none; padding: 0;">
+                <li style="padding: 0.3rem 0;">❌ {{ pricing.losses.missedCalls }}</li>
+                <li style="padding: 0.3rem 0;">❌ {{ pricing.losses.revenueLoss }}</li>
+                <li style="padding: 0.3rem 0;">❌ {{ pricing.losses.eveningWork }}</li>
+            </ul>
+        </div>
+
+        <div class="pricing-box">
+            <div style="color: #ef4444; font-size: 1.1rem; margin-bottom: 0.5rem; text-decoration: line-through; opacity: 0.7;">
+                {{ pricing.apprenticeCost }}/Monat (Azubi) + 6 Monate Einarbeitung & Nerven
+            </div>
+            <div class="price-main">{{ pricing.pricePerAppointment }} pro qualifiziertem Termin</div>
+            <div class="price-sub">Keine Grundgebühr - nur bei Erfolg</div>
+
+            <ul class="price-features">
+                {% for feature in pricing.features %}
+                <li>✓ {{ feature }}</li>
+                {% endfor %}
+            </ul>
+
+            <a href="#kontakt" class="pricing-cta">{{ pricing.cta }}</a>
+        </div>
+
+        <div class="pricing-comparison">
+            <h3 style="text-align: center; color: var(--primary); margin-bottom: 1.5rem;">Vergleich: Azubi vs. {{ company.name }}</h3>
+            <div class="pricing-row">
+                <div class="pricing-option"><strong>Kostenpunkt</strong></div>
+                <div class="pricing-option">Azubi</div>
+                <div class="pricing-option highlight"><strong>{{ company.name }}</strong></div>
+            </div>
+            {% for row in pricing.comparison %}
+            <div class="pricing-row">
+                <div class="pricing-option"><strong>{{ row.criterion }}</strong></div>
+                <div class="pricing-option">
+                    {% if row.apprentice starts with '✓' or row.apprentice starts with '✗' %}
+                        <span class="{% if row.apprentice starts with '✓' %}pricing-check{% else %}pricing-cross{% endif %}">
+                            {{ row.apprentice | slice(1) }}
+                        </span>
+                    {% else %}
+                        {{ row.apprentice }}
+                    {% endif %}
+                </div>
+                <div class="pricing-option highlight">
+                    {% if row.service starts with '✓' or row.service starts with '✗' %}
+                        <span class="{% if row.service starts with '✓' %}pricing-check{% else %}pricing-cross{% endif %}">
+                            {{ row.service | slice(1) }}
+                        </span>
+                    {% else %}
+                        <strong>{{ row.service }}</strong>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>

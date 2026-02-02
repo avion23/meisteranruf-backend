@@ -1,0 +1,20 @@
+{
+  "name": "vorzimmerdrache-landing-page",
+  "version": "1.0.0",
+  "description": "Static landing page powered by Eleventy",
+  "scripts": {
+    "build": "npx @11ty/eleventy",
+    "start": "npx @11ty/eleventy --serve",
+    "watch": "npx @11ty/eleventy --watch"
+  },
+  "keywords": [
+    "eleventy",
+    "static-site",
+    "landing-page"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0"
+  }
+}

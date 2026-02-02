@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "beforeIcon": "📞",
+      "beforeTitle": "Telefonchaos",
+      "beforeText": "15 Anrufe, 3 wichtige, 12 Zeitfresser. Sie sortieren abends.",
+      "beforeImage": "images/stressed.jpg",
+      "afterIcon": "✅",
+      "afterTitle": "WhatsApp-Zusammenfassung",
+      "afterText": "Abends eine Nachricht mit allen wichtigen Infos. Fertig.",
+      "afterImage": "images/phone.jpg"
+    },
+    {
+      "beforeIcon": "📞",
+      "beforeTitle": "Leads verloren",
+      "beforeText": "Kunde ruft 3x an, niemand geht ran. Bei Konkurrenz bestellt.",
+      "beforeImage": null,
+      "afterIcon": "🤝",
+      "afterTitle": "Qualifizierte Termine",
+      "afterText": "Wir nehmen jeden Anruf, filtern Ernsthaftige, melden nur echte Leads.",
+      "afterImage": null
+    },
+    {
+      "beforeIcon": "🌙",
+      "beforeTitle": "Abende im Büro",
+      "beforeText": "Rückrufe bis 21 Uhr. Familie wartet, Akku leer.",
+      "beforeImage": null,
+      "afterIcon": "✅",
+      "afterTitle": "Freie Abende",
+      "afterText": "Wir haben tagsüber alles geklärt. Sie genießen Ihren Feierabend.",
+      "afterImage": "images/customer.jpg"
+    },
+    {
+      "beforeIcon": "🚗",
+      "beforeTitle": "Doppelte Fahrten",
+      "beforeText": "Termin vereinbart, Kunde da, Infos fehlen. Nochmal fahren.",
+      "beforeImage": null,
+      "afterIcon": "✅",
+      "afterTitle": "Komplett-Infos",
+      "afterText": "Dach, Strom, Budget - alles geprüft vor dem ersten Termin.",
+      "afterImage": null
+    }
+  ]
+}

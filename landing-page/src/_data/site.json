@@ -1,0 +1,24 @@
+{
+  "site": {
+    "name": "VorzimmerDrache",
+    "url": "https://vorzimmerdrache.pages.dev",
+    "description": "Anruf-Service für PV-Installateure. Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind.",
+    "author": "VorzimmerDrache"
+  },
+  "company": {
+    "name": "Linda Trading UG (haftungsbeschränkt)",
+    "brand": "VorzimmerDrache",
+    "street": "Schleidener Str. 6",
+    "city": "50937 Köln",
+    "phone": "+49 177 7250 851",
+    "email": "info@ecolinda.com",
+    "taxId": "DE 322254850",
+    "registerCourt": "Amtsgericht Köln",
+    "registerNumber": "HRB 97024"
+  },
+  "social": {
+    "facebook": "",
+    "instagram": "",
+    "linkedin": ""
+  }
+}

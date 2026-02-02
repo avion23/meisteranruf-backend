@@ -1,0 +1,72 @@
+{
+  "title": "So geht's",
+  "workflow": [
+    {
+      "icon": "📞",
+      "title": "Anruf eingehend",
+      "description": "Kunde ruft an"
+    },
+    {
+      "icon": "🔍",
+      "title": "Prüfung & Filter",
+      "description": "Wir qualifizieren"
+    },
+    {
+      "icon": "💬",
+      "title": "WhatsApp Info",
+      "description": "Sie erhalten Details"
+    },
+    {
+      "icon": "🤝",
+      "title": "Termin bestätigt",
+      "description": "Auftrag in Sicht"
+    }
+  ],
+  "steps": [
+    {
+      "number": 1,
+      "title": "WhatsApp bei wichtigen Anrufen",
+      "description": "Wir leiten Eiliges sofort weiter - BAFA-Frist, Störung, Terminverschiebung. Sie entscheiden, was sofort Ihre Aufmerksamkeit braucht."
+    },
+    {
+      "number": 2,
+      "title": "Nur echte Termine werden weitergeleitet",
+      "description": "Wir filtern: Interessenten mit Dach, passendes Budget, realistischer Zeitrahmen. Keine Zeitfresser-Anrufe mehr."
+    },
+    {
+      "number": 3,
+      "title": "Tägliche Zusammenfassung per WhatsApp",
+      "description": "Abends alle Anrufe in einer Nachricht. Wer war dran, was wollen sie, was ist der nächste Schritt. Kurz und konkret."
+    },
+    {
+      "number": 4,
+      "title": "Wir kennen Fronius, SMA, Kostal",
+      "description": "Ihre Kunden merken, dass wir verstehen, wovon sie reden. Kein Callcenter-Script, sondern Fachwissen."
+    }
+  ],
+  "whatsAppExamples": [
+    {
+      "type": "urgent",
+      "icon": "🔴",
+      "title": "Wichtiger Rückruf",
+      "content": "Herr Meyer ruft wegen laufender BAFA-Frist an.\nRufen Sie zurück: 0171 12345678\n\nDetails:\n• BAFA-Antrag läuft in 10 Tagen ab\n• 8kWp geplant, Eigenbedarf\n• Dach geprüft, Baurecht vorhanden\n• Budget: €20-25k\n\nDringlichkeit: HOCH"
+    },
+    {
+      "type": "summary",
+      "icon": "📊",
+      "title": "Tageszusammenfassung",
+      "content": "HEUTE: 12 Anrufe, 3 wichtige, 1 Termin\n\nWichtige Rückrufe:\n1. Schmidt - 6kWp, Deckungserklärung liegt vor\n2. Wegener - 3 Dächer Nachbarschaftsprojekt\n3. Bauer - Gewerbehalle 30kWp, dringend\n\nTermin bestätigt:\nSa 10:00 - Meier, Dachsanierung + 5kWp"
+    },
+    {
+      "type": "filtered",
+      "icon": "❌",
+      "title": "Gefiltert (Zeitfresser)",
+      "content": "Anruf abgewiesen - Schmidt\n\nDetails:\n• Kein Baurecht nachgefragt\n• Will \"schnell mal Preis\" ohne Besichtigung\n• Vergleicht 5 Anbieter gleichzeitig\n• Budget offenbar €15-17k (unrealistisch)\n\nEmpfehlung: Nicht zurückrufen."
+    }
+  ],
+  "images": [
+    "images/workshop.jpg",
+    "images/electrician.jpg",
+    "images/tools.jpg"
+  ]
+}

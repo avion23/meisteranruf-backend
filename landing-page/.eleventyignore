@@ -1,0 +1,20 @@
+# Node modules
+node_modules
+
+# Build output
+_site
+
+# Eleventy cache
+.eleventy-cache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode
+.idea
+
+# Wrangler and temporary files
+.wrangler
+nanobanana-output

@@ -1,0 +1,215 @@
+---
+layout: base.njk
+title: AGB - VorzimmerDrache
+description: Allgemeine Geschäftsbedingungen von VorzimmerDrache.
+---
+
+<nav>
+  <div class="container">
+    <a href="/" class="logo">Vorzimmer<span>Drache</span></a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="content">
+    <h1>Allgemeine Geschäftsbedingungen (AGB)</h1>
+
+    <div class="legal-section">
+      <h2>§ 1 Geltungsbereich</h2>
+      <p>
+        Diese Allgemeinen Geschäftsbedingungen gelten für alle Verträge zwischen der {{ company.name }}
+        (nachfolgend "Anbieter" genannt) und ihren Kunden (nachfolgend "Auftraggeber" genannt) über die Erbringung von
+        Telefonservice-Leistungen für PV-Installateure und Handwerksbetriebe.
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 2 Vertragsgegenstand</h2>
+      <p>
+        Der Anbieter übernimmt die Entgegennahme und Qualifizierung eingehender Telefonanrufe für den Auftraggeber.
+        Dienstleistungen umfassen:
+      </p>
+      <p>
+        • Annahme eingehender Anrufe während der vereinbarten Zeiten (7-21 Uhr)<br>
+        • Qualifizierung von Leads nach vom Auftraggeber definierten Kriterien<br>
+        • Weiterleitung qualifizierter Anfragen per WhatsApp oder E-Mail<br>
+        • Tägliche oder wöchentliche Zusammenfassung aller Anrufe<br>
+        • Filtern von unqualifizierten Anfragen (Preisjäger, keine Baurecht, etc.)
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 3 Preise und Zahlungsbedingungen</h2>
+      <p>
+        <strong>Preismodell:</strong> {{ pricing.pricePerAppointment }} pro qualifiziertem Termin, der durch den Anbieter vereinbart wird.
+      </p>
+      <p>
+        <strong>Einrichtungsgebühr:</strong> {{ pricing.setupFee }} für Einrichtung der Telefonnummer, WhatsApp-Integration und Anrufbeantworter-Texte.
+      </p>
+      <p>
+        <strong>Abrechnung:</strong> Monatliche Rechnungstellung basierend auf der Anzahl vereinbarter qualifizierter Termine im Abrechnungszeitraum.
+      </p>
+      <p>
+        <strong>Zahlungsziel:</strong> 14 Tage nach Rechnungsstellung ohne Abzug.
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 4 Vertragslaufzeit und Kündigung</h2>
+      <p>
+        Der Vertrag läuft auf unbestimmte Zeit und kann von beiden Parteien mit einer Frist von 14 Tagen zum Monatsende gekündigt werden.
+      </p>
+      <p>
+        Bei Kündigung durch den Auftraggeber innerhalb der ersten 30 Tage wird die Einrichtungsgebühr nicht zurückerstattet.
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 5 Pflichten des Auftraggebers</h2>
+      <p>
+        Der Auftraggeber verpflichtet sich:
+      </p>
+      <p>
+        • Aktuelle Erreichbarkeitsinformationen bereitzustellen<br>
+        • Qualifizierungskriterien für Leads zu definieren und mitzuteilen<br>
+        • Rückfragen des Anbieters innerhalb angemessener Zeit zu beantworten<br>
+        • Produkt- und Dienstleistungsinformationen zur Verfügung zu stellen<br>
+        • Termine, die der Anbieter vermittelt, wahrzunehmen oder rechtzeitig abzusagen
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 6 Haftung</h2>
+      <p>
+        Der Anbieter haftet für Schäden nur bei Vorsatz oder grober Fahrlässigkeit. Die Haftung für leichte Fahrlässigkeit ist ausgeschlossen,
+        es sei denn, es handelt sich um die Verletzung wesentlicher Vertragspflichten (Kardinalpflichten) oder um Schäden aus der Verletzung
+        des Lebens, des Körpers oder der Gesundheit.
+      </p>
+      <p>
+        Der Anbieter übernimmt keine Gewähr für die erfolgreiche Vermittlung von Aufträgen. Die Leistung besteht ausschließlich in der
+        Entgegennahme und Weiterleitung von Anfragen.
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 7 Datenschutz</h2>
+      <p>
+        Die Verarbeitung personenbezogener Daten erfolgt gemäß unserer Datenschutzerklärung und den geltenden datenschutzrechtlichen
+        Bestimmungen (DSGVO, BDSG). Der Auftraggeber sichert zu, die erforderlichen datenschutzrechtlichen Einwilligungen seiner
+        Anfragenden eingeholt zu haben.
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 8 Salvatorische Klausel</h2>
+      <p>
+        Sollten einzelne Bestimmungen dieser AGB ganz oder teilweise unwirksam sein oder werden, bleibt der Vertrag im Übrigen wirksam.
+        Anstelle der unwirksamen Bestimmung treten die gesetzlichen Regelungen.
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>§ 9 Gerichtsstand</h2>
+      <p>
+        Gerichtsstand für alle Streitigkeiten aus diesem Vertrag ist {{ company.address.city }}, soweit der Auftraggeber Kaufmann, juristische Person des
+        öffentlichen Rechts oder öffentlich-rechtliches Sondervermögen ist.
+      </p>
+    </div>
+
+    <div class="legal-section">
+      <h2>Kontakt</h2>
+      <address>
+        <strong>{{ company.name }}</strong><br>
+        {{ company.address.street }}<br>
+        {{ company.address.postalCode }} {{ company.address.city }}<br><br>
+
+        Telefon: {{ company.contact.phoneDisplay }}<br>
+        E-Mail: {{ company.contact.email }}<br><br>
+
+        {{ company.registerNumber }} {{ company.registerCourt }}<br>
+        USt-IdNr: {{ company.taxID }}
+      </address>
+    </div>
+
+    <p style="margin-top: 2rem; font-size: 0.9rem; color: var(--gray);">
+      Stand: Februar 2026
+    </p>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>© 2026 VorzimmerDrache - Ein Angebot der {{ company.name }}</p>
+    <p>
+      <a href="/">Zurück zur Startseite</a> •
+      <a href="impressum.html">Impressum</a> •
+      <a href="datenschutz.html">Datenschutz</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  nav {
+    background: var(--primary);
+    padding: 1rem 0;
+    border-bottom: 3px solid var(--accent);
+  }
+  nav .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .logo {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+  }
+  .logo span {
+    color: var(--accent);
+  }
+  .content {
+    padding: 3rem 0;
+    max-width: 900px;
+  }
+  h1 {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 2rem;
+  }
+  h2 {
+    font-size: 1.3rem;
+    color: var(--primary);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--accent);
+    padding-left: 1rem;
+  }
+  p {
+    margin-bottom: 1rem;
+    color: var(--dark-gray);
+  }
+  .legal-section {
+    margin-bottom: 2rem;
+  }
+  address {
+    font-style: normal;
+    line-height: 1.8;
+    background: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+  }
+  footer {
+    background: var(--primary);
+    color: #9ca3af;
+    padding: 2rem 0;
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: 3rem;
+  }
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+</style>

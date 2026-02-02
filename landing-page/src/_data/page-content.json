@@ -1,0 +1,309 @@
+{
+  "title": "Anruf-Service für PV-Installateure | Wir kennen die BAFA-Frist",
+  "description": "Anruf-Service für PV-Installateure. Wir übernehmen Ihre Anrufe, wenn Sie auf dem Dach sind. Spezialisiert auf Photovoltaik und BAFA-Fristen.",
+  "keywords": "PV-Service, Telefonsekretariat Photovoltaik, Anrufservice Installateure, BAFA Frist, Solar-Telefon service",
+
+  "hero": {
+    "headline": "Wie viele BAFA-Anträge sind Ihnen diesen Monat durch die Lappen gegangen?",
+    "subline": "Es klingelt immer im falschen Moment. Sie verlieren Aufträge. Und am Ende sitzen Sie abends bis 21 Uhr am Telefon. Das frustriert. Und es ist nicht Ihre Schuld.",
+    "cta": "Jetzt testen - 7 Tage kostenlos",
+    "ctaLink": "#kontakt",
+    "image": {
+      "src": "images/hero-pv.jpg",
+      "alt": "PV-Installateur auf dem Dach bei der Arbeit"
+    }
+  },
+
+  "problem": {
+    "validation": {
+      "headline": "Das ist frustrierend.",
+      "text": "Sie können nicht gleichzeitig auf dem Dach kabeln, Angebote schreiben UND jeden Anruf persönlich entgegennehmen. Irgendwas geht dabei immer unter. Leads, Fristen, Ihre Zeit."
+    },
+    "questions": [
+      {
+        "condition": "...Sie drei weitere BAFA-Fristen verpassen?",
+        "consequence": "Das sind 3 Kunden, die nie zurückkommen. Die erzählen das weiter. Ihr Ruf leidet."
+      },
+      {
+        "condition": "...Sie 2 Stunden pro Tag weniger am Dach sind?",
+        "consequence": "2 Stunden × 20 Arbeitstage = 40 Stunden weniger Umsatz pro Monat. Das kostet Sie mehr als unser gesamter Service."
+      },
+      {
+        "condition": "...Ihr Wettbewerber die Anrufe annimmt?",
+        "consequence": "Kunden warten nicht. Die rufen den nächsten Betrieb an. Und der nächste ist schneller."
+      },
+      {
+        "condition": "...Sie abends noch Rückrufe machen?",
+        "consequence": "Akku leer, Familie wartet. Morgen sind Sie müde. Auf dem Dach gefährlich."
+      }
+    ],
+    "quote": "Es klingelt immer, wenn ich gerade die Klemmen in der Hand habe. Ich weiß nicht, ob ich ans Telefon gehen soll oder fertigkabeln. Am Ende mach ich beides halb.",
+    "quoteAttribution": "Was PV-Installateure uns sagen. Jeden Tag."
+  },
+
+  "beforeAfter": [
+    {
+      "before": {
+        "icon": "❌",
+        "title": "Telefonchaos:",
+        "text": "15 Anrufe, 3 wichtige, 12 Zeitfresser. Sie sortieren abends.",
+        "image": "images/stressed.jpg",
+        "imageAlt": "Gestresster Installateur mit Telefon"
+      },
+      "after": {
+        "icon": "✅",
+        "title": "WhatsApp-Zusammenfassung:",
+        "text": "Abends eine Nachricht mit allen wichtigen Infos. Fertig.",
+        "image": "images/phone.jpg",
+        "imageAlt": "WhatsApp Übersicht auf Smartphone"
+      }
+    },
+    {
+      "before": {
+        "icon": "❌",
+        "title": "Leads verloren:",
+        "text": "Kunde ruft 3x an, niemand geht ran. Bei Konkurrenz bestellt.",
+        "emoji": "📞"
+      },
+      "after": {
+        "icon": "✅",
+        "title": "Qualifizierte Termine:",
+        "text": "Wir nehmen jeden Anruf, filtern Ernsthaftige, melden nur echte Leads.",
+        "emoji": "🤝"
+      }
+    },
+    {
+      "before": {
+        "icon": "❌",
+        "title": "Abende im Büro:",
+        "text": "Rückrufe bis 21 Uhr. Familie wartet, Akku leer.",
+        "emoji": "🌙"
+      },
+      "after": {
+        "icon": "✅",
+        "title": "Freie Abende:",
+        "text": "Wir haben tagsüber alles geklärt. Sie genießen Ihren Feierabend.",
+        "image": "images/customer.jpg",
+        "imageAlt": "Zufriedener Kunde nach Installation"
+      }
+    },
+    {
+      "before": {
+        "icon": "❌",
+        "title": "Doppelte Fahrten:",
+        "text": "Termin vereinbart, Kunde da, Infos fehlen. Nochmal fahren.",
+        "emoji": "🚗"
+      },
+      "after": {
+        "icon": "✅",
+        "title": "Komplett-Infos:",
+        "text": "Dach, Strom, Budget - alles geprüft vor dem ersten Termin.",
+        "emoji": "✓"
+      }
+    }
+  ],
+
+  "howItWorks": {
+    "headline": "So geht's",
+    "workflow": [
+      {
+        "icon": "📞",
+        "title": "Anruf eingehend",
+        "subtitle": "Kunde ruft an"
+      },
+      {
+        "icon": "🔍",
+        "title": "Prüfung & Filter",
+        "subtitle": "Wir qualifizieren"
+      },
+      {
+        "icon": "💬",
+        "title": "WhatsApp Info",
+        "subtitle": "Sie erhalten Details"
+      },
+      {
+        "icon": "🤝",
+        "title": "Termin bestätigt",
+        "subtitle": "Auftrag in Sicht"
+      }
+    ],
+    "steps": [
+      {
+        "number": 1,
+        "title": "WhatsApp bei wichtigen Anrufen",
+        "description": "Wir leiten Eiliges sofort weiter - BAFA-Frist, Störung, Terminverschiebung. Sie entscheiden, was sofort Ihre Aufmerksamkeit braucht."
+      },
+      {
+        "number": 2,
+        "title": "Nur echte Termine werden weitergeleitet",
+        "description": "Wir filtern: Interessenten mit Dach, passendes Budget, realistischer Zeitrahmen. Keine Zeitfresser-Anrufe mehr."
+      },
+      {
+        "number": 3,
+        "title": "Tägliche Zusammenfassung per WhatsApp",
+        "description": "Abends alle Anrufe in einer Nachricht. Wer war dran, was wollen sie, was ist der nächste Schritt. Kurz und konkret."
+      },
+      {
+        "number": 4,
+        "title": "Wir kennen Fronius, SMA, Kostal",
+        "description": "Ihre Kunden merken, dass wir verstehen, wovon sie reden. Kein Callcenter-Script, sondern Fachwissen."
+      }
+    ],
+    "images": [
+      {
+        "src": "images/workshop.jpg",
+        "alt": "Professionelle PV-Werkstatt"
+      },
+      {
+        "src": "images/electrician.jpg",
+        "alt": "Elektriker bei der Installation"
+      },
+      {
+        "src": "images/tools.jpg",
+        "alt": "Professionelle Werkzeuge"
+      }
+    ],
+    "whatsappExamples": [
+      {
+        "type": "🔴 Wichtiger Rückruf",
+        "content": "Herr Meyer ruft wegen laufender BAFA-Frist an.\nRufen Sie zurück: 0171 12345678\n\nDetails:\n• BAFA-Antrag läuft in 10 Tagen ab\n• 8kWp geplant, Eigenbedarf\n• Dach geprüft, Baurecht vorhanden\n• Budget: €20-25k\n\nDringlichkeit: HOCH"
+      },
+      {
+        "type": "📊 Tageszusammenfassung",
+        "content": "HEUTE: 12 Anrufe, 3 wichtige, 1 Termin\n\nWichtige Rückrufe:\n1. Schmidt - 6kWp, Deckungserklärung liegt vor\n2. Wegener - 3 Dächer Nachbarschaftsprojekt\n3. Bauer - Gewerbehalle 30kWp, dringend\n\nTermin bestätigt:\nSa 10:00 - Meier, Dachsanierung + 5kWp"
+      },
+      {
+        "type": "❌ Gefiltert (Zeitfresser)",
+        "content": "Anruf abgewiesen - Schmidt\n\nDetails:\n• Kein Baurecht nachgefragt\n• Will \"schnell mal Preis\" ohne Besichtigung\n• Vergleicht 5 Anbieter gleichzeitig\n• Budget offenbar €15-17k (unrealistisch)\n\nEmpfehlung: Nicht zurückrufen."
+      }
+    ]
+  },
+
+  "testimonials": [
+    {
+      "company": "Thomas M., PV-Meisterbetrieb, Augsburg",
+      "info": "12 Mitarbeiter",
+      "avatar": "images/electrician.jpg",
+      "quote": "Früher hab ich abends zurückgerufen. Die Hälfte hatte schon 'nen anderen Betrieb. Mit dem Service hol ich mir Leads, die sonst weg waren. Letzten Monat 3 zusätzliche Aufträge draus."
+    },
+    {
+      "company": "Stefan K., Solarbau, Ostwestfalen",
+      "info": "5 Mitarbeiter",
+      "initials": "SK",
+      "quote": "Meine Frau macht die Bürokram. Die hats satt, jeden das Gleiche zu erklären. Seitdem das hier läuft, kommt nur noch was Relevantes bei uns an. Keine Zeitverschwendung mehr."
+    },
+    {
+      "company": "Robert W., Dachdecker mit PV-Sparte, Hamburg",
+      "info": "8 Mitarbeiter",
+      "avatar": "images/customer.jpg",
+      "quote": "Bin skeptisch gewesen. Aber ein Azubi kostet €2.500 im Monat und braucht 3-6 Monate Einarbeitung. Dann kommen Berufsschule, Krankheit und die Nerven, wenn er Fehler macht. Hier läuft es von Tag 1. Ohne Management-Overhead."
+    }
+  ],
+
+  "trustSignals": [
+    {
+      "icon": "🇩🇪",
+      "title": "Aus Bayern, nicht aus Bangalore",
+      "description": "Ihr Ansprechpartner sitzt in Deutschland und hat selbst Handwerker-Background. Kein Callcenter in Osteuropa, kein \"I understand your concern\"."
+    },
+    {
+      "icon": "🔒",
+      "title": "DSGVO wie beim Handwerkskammer-Portal",
+      "description": "Ihre Kundendaten landen nicht bei Dritten. Wir nutzen die gleichen Standards wie jede seriöse deutsche Verwaltung. TLS-Verschlüsselung wie beim Online-Banking."
+    },
+    {
+      "icon": "💰",
+      "title": "Transparente Preise, keine Überraschungen",
+      "description": "Was wir versprechen, halten wir. Keine versteckten Gebühren, keine Zusatzkosten. Monatlich kündbar ohne Wenn und Aber."
+    },
+    {
+      "icon": "⚡",
+      "title": "7-Tage Go-Live Garantie",
+      "description": "Wenn nicht in 7 Tagen alles läuft, zahlen Sie das Setup nicht. Wir stehen hinter unserem Service."
+    }
+  ],
+
+  "faq": [
+    {
+      "icon": "💰",
+      "question": "Das klingt teuer.",
+      "answer": "Ein durchgefallener Termin (Fahrt, Angebot, Zeit) kostet Sie leicht €150-200. Wir holen Ihnen 10 qualifizierte Termine für €500. Schauen Sie unten beim Vergleich: Ein Azubi kostet €2.500/Monat plus Sozialabgaben – aber vor allem: 3 Monate Einarbeitung, ständige Kontrolle, und die Nerven, wenn er zum 5. Mal die gleiche Sache falsch macht."
+    },
+    {
+      "icon": "⚖️",
+      "question": "DSGVO bei WhatsApp? Geht das denn?",
+      "answer": "Wir leiten nur weiter, was Sie brauchen: Name, Telefon, Grund. Keine Kundendaten speichern, kein Profilbau. Das ist rechtlich dasselbe wie wenn Ihre Sekretärin Ihnen eine Notiz auf den Schreibtisch legt. Einfach, sicher, legal."
+    },
+    {
+      "icon": "🔓",
+      "question": "Was, wenn es nicht klappt?",
+      "answer": "Monatlich kündbar, keine Mindestlaufzeit. Wir müssen uns jeden Monat neu beweisen. So sollte Service sein. Wenn Sie nicht zufrieden sind, gehen Sie. Keine Fragen."
+    },
+    {
+      "icon": "🎯",
+      "question": "Nur PV? Warum nicht alle Handwerker?",
+      "answer": "Generalisten helfen halb. Spezialisten helfen durch. BAFA-Fristen, Speicherklassen, Notstromkonzepte - das können wir aus dem FF. Ein Dachdecker, ein Elektriker, ein Heizungsbauer: Wir sind gut in einer Sache. Und das ist Ihr Vorteil."
+    },
+    {
+      "icon": "⏱️",
+      "question": "Wie schnell geht das?",
+      "answer": "Verstanden. 7 Tage bis Go-Live. Tag 1-2: Einrichtung WhatsApp, Anrufbeantworter-Text. Tag 3-4: Schulung, FAQ-Liste Ihre Projekte. Tag 5-7: Testphase, erste Live-Anrufe. Danach läuft's."
+    }
+  ],
+
+  "roi": {
+    "headline": "Rechnen Sie Ihren Mehrumsatz aus",
+    "subline": "Sehen Sie sofort, wie viel Umsatz Sie durch verpasste Anrufe verlieren – und wie viel Sie retten können.",
+    "inputs": {
+      "requests": {
+        "label": "Anfragen pro Woche",
+        "default": 20
+      },
+      "missed": {
+        "label": "Verpasst oder zu spät (%)",
+        "default": 30
+      },
+      "orderValue": {
+        "label": "Durchschnittlicher Auftragswert (€)",
+        "default": 8000
+      }
+    }
+  },
+
+  "contact": {
+    "headline": "Kostenlos kennenlernen",
+    "subline": "Wir rufen Sie innerhalb von 24 Stunden zurück. Kein Verkaufsgespräch - wir schauen einfach, ob es passt.",
+    "cta": "Anruf anfordern",
+    "form": {
+      "name": {
+        "label": "Name / Firma",
+        "placeholder": "Ihr Name oder Firmenname",
+        "required": true
+      },
+      "phone": {
+        "label": "Telefon (für Rückruf)",
+        "placeholder": "z.B. 0171 12345678 oder +49 171 12345678",
+        "required": true,
+        "pattern": "^(\\+49|0)[1-9][0-9]{1,14}$",
+        "title": "Bitte geben Sie eine gültige deutsche Telefonnummer ein"
+      },
+      "email": {
+        "label": "E-Mail (optional)",
+        "placeholder": "mueller@firma.de"
+      },
+      "installations": {
+        "label": "Installationen pro Monat (ungefähr)",
+        "placeholder": "z.B. 15-20"
+      },
+      "message": {
+        "label": "Nachricht (optional)",
+        "placeholder": "Ihre Frage oder Anmerkung",
+        "rows": 3
+      },
+      "consent": {
+        "label": "Ich stimme zu, dass meine Angaben zur Kontaktaufnahme gespeichert und verarbeitet werden. Ich habe die Datenschutzerklärung gelesen.",
+        "required": true
+      }
+    }
+  }
+}

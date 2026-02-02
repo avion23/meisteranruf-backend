@@ -1,0 +1,43 @@
+{
+  "pricePerAppointment": "€50",
+  "setupFee": "€99",
+  "apprenticeCost": "€2.500+",
+  "cta": "Jetzt starten - Erste Anrufe morgen",
+  "losses": {
+    "missedCalls": "3-4 verpasste Anrufe pro Woche",
+    "revenueLoss": "€2.000+ Umsatzverlust pro Monat",
+    "eveningWork": "10+ Stunden Abendsarbeit pro Monat"
+  },
+  "features": [
+    "Nur zahlen, wenn wir einen echten Termin für Sie rausarbeiten",
+    "Einmalig €99 Einrichtung (WhatsApp-Nummer, Anrufbeantworter-Text, Skripte)",
+    "Monatlich kündbar, keine Mindestlaufzeit",
+    "Keine versteckten Kosten"
+  ],
+  "comparison": [
+    {"criterion": "Monatliche Kosten", "apprentice": "€2.500+", "service": "€500"},
+    {"criterion": "Einarbeitungszeit", "apprentice": "3-6 Monate", "service": "7 Tage"},
+    {"criterion": "Management-Aufwand", "apprentice": "Hoch (Kontrolle)", "service": "Null"},
+    {"criterion": "Verfügbarkeit", "apprentice": "Schule/Krank/Urlaub", "service": "100% (Mo-Fr)"},
+    {"criterion": "Qualität / Nerven", "apprentice": "Schwankend", "service": "Experten-Standard"},
+    {"criterion": "Fachwissen PV", "apprentice": "Nein", "service": "Ja"},
+    {"criterion": "Kündbarkeit", "apprentice": "12 Monate", "service": "Monatlich"}
+  ],
+  "guarantees": [
+    {
+      "icon": "✅",
+      "title": "7-Tage Go-Live",
+      "description": "Wenn nicht in 7 Tagen alles läuft, zahlen Sie das Setup nicht."
+    },
+    {
+      "icon": "✅",
+      "title": "30-Tage Zufriedenheit",
+      "description": "Nicht zufrieden? Kündigen Sie einfach. Keine Fragen."
+    },
+    {
+      "icon": "✅",
+      "title": "Nur bei Erfolg zahlen",
+      "description": "Kein qualifizierter Termin? Keine Kosten. So einfach."
+    }
+  ]
+}

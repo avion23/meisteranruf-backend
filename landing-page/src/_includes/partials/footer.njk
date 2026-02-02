@@ -1,0 +1,65 @@
+{# Footer component #}
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>{{ site.site.name }}</h3>
+        <p>{{ site.site.description }}</p>
+      </div>
+      <div class="footer-section">
+        <h3>Kontakt</h3>
+        <p>{{ site.company.street }}</p>
+        <p>{{ site.company.city }}</p>
+        <p>Tel: {{ site.company.phone }}</p>
+        <p>E-Mail: {{ site.company.email }}</p>
+      </div>
+      <div class="footer-section">
+        <h3>Rechtliches</h3>
+        <ul>
+          <li><a href="/impressum/">Impressum</a></li>
+          <li><a href="/datenschutz/">Datenschutz</a></li>
+          <li><a href="/agb/">AGB</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 {{ site.company.name }}. Alle Rechte vorbehalten.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+.footer {
+  background: #f8f9fa;
+  padding: 3rem 0 1rem;
+  margin-top: 4rem;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-section h3 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.footer-section ul {
+  list-style: none;
+}
+
+.footer-section ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid #ddd;
+  color: #666;
+  font-size: 0.9rem;
+}
+</style>
