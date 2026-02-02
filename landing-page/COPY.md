@@ -166,7 +166,7 @@ Ihre Einwände. Ehrlich Antworten.
 ```
 "Klingt teuer."
 
-→ Ein Azubi kostet €2.500/Monat. Wir holen Ihnen 10 Termine für €500. 
+→ Ein Azubi kostet €2.500/Monat plus Sozialabgaben – aber vor allem: 3-6 Monate Einarbeitung, ständige Kontrolle, und die Nerven, wenn er zum 5. Mal die gleiche Sache falsch macht. 
 Rechnen Sie selbst aus, was ein durchgefallener Termin Sie kostet.
 ```
 

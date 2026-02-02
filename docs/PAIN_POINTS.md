@@ -54,8 +54,8 @@ This document serves as a comprehensive reference for marketing, sales, and cust
 
 ---
 
-## 3. Financial Pain Points
-*Focus: Direct revenue loss and labor costs.*
+## 3. Financial & Operational Pain Points
+*Focus: Direct revenue loss, labor costs, and management overhead.*
 
 ### Lost Revenue from Unanswered Leads
 *   **The Problem:** High-value leads calling 2-3 times, getting no answer, and calling a competitor instead.
@@ -65,13 +65,18 @@ This document serves as a comprehensive reference for marketing, sales, and cust
 *   **Trigger Phrase:** "Aufträge durch die Lappen gegangen"
 *   **Calibrated Question:** "Wie viel Umsatz ist Ihnen diesen Monat durch die Lappen gegangen?"
 
-### High Cost of Staffing (The "Azubi" Problem)
-*   **The Problem:** Hiring internal help (like an apprentice/Azubi) is expensive and slow to train.
-*   **Emotional Impact:** Feeling stuck between "doing it all alone" and "expensive overhead."
-*   **Financial Impact:** €2,500/month plus social contributions and 3-6 months training time.
-*   **Quote:** "Ein Azubi kostet €2.500/Monat + Sozialabgaben... VorzimmerDrache: €500."
-*   **Trigger Phrase:** "Azubi zu teuer" / "Lohnnebenkosten"
-*   **Calibrated Question:** "Was würde es Sie kosten, jemanden Vollzeit für das Telefon einzustellen?"
+### The Hidden Cost of Hiring (The "Azubi" Problem)
+*   **The Problem:** Hiring internal help (like an apprentice/Azubi) is not just expensive in cash, but drains the owner's most valuable resources: time and nerves.
+*   **Emotional Impact:** Feeling like a "teacher/babysitter" instead of a business owner. Stress from constant corrections and reliability issues.
+*   **Operational Impact:** 
+    *   **Training Drain:** 3-6 months until they are actually productive.
+    *   **Management Overhead:** Ständige Kontrolle, Einarbeitung, und "Händchenhalten."
+    *   **Availability Gaps:** Sick days, vocational school (Berufsschule), vacation, and limited working hours.
+    *   **Quality Risk:** Inconsistent work quality leading to customer complaints or missed information.
+*   **Financial Impact:** €2,500/month salary + social contributions + cost of your own time spent training them.
+*   **Quote:** "Ein Azubi kostet €2.500/Monat plus Sozialabgaben - aber vor allem: 3 Monate Einarbeitung, ständige Kontrolle, und die Nerven, wenn er zum 5. Mal die gleiche Sache falsch macht."
+*   **Trigger Phrase:** "Azubi zu teuer" / "Keine Lust auf Einarbeitung" / "Nerven am Ende"
+*   **Calibrated Question:** "Was kostet es Sie wirklich an Zeit und Nerven, jemanden 6 Monate lang einzuarbeiten, nur damit er dann am Telefon trotzdem Fehler macht?"
 
 ---
 
@@ -110,6 +115,7 @@ This document serves as a comprehensive reference for marketing, sales, and cust
 4.  **"Was passiert mit Ihrem Betrieb, wenn Ihr Wettbewerber die Anrufe annimmt?"** (Competition)
 5.  **"Was passiert mit Ihrem Betrieb, wenn Sie abends noch Rückrufe machen?"** (Work-Life/Safety)
 6.  **"Wie viel Zeit verlieren Sie an Anrufer, die 'schnell mal einen Preis' ohne Besichtigung wollen?"** (Efficiency)
+7.  **"Was kostet es Sie wirklich an Zeit und Nerven, jemanden 6 Monate lang einzuarbeiten, nur damit er dann am Telefon trotzdem Fehler macht?"** (Management/Hidden Cost)
 
 ---
 *Generated based on /landing-page/index.html*
