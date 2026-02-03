@@ -134,7 +134,8 @@
         "operation": "getAll",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}"
       },
@@ -156,7 +157,7 @@
     {
       "parameters": {
         "respondWith": "xml",
-        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zur\u00fcck.</Say>\n  <Pause length=\"1\"/>\n</Response>",
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zurück.</Say>\n  <Pause length=\"1\"/>\n</Response>",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -227,7 +228,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "body": "Hi, wir haben Ihren Anruf verpasst. M\u00f6chten Sie Updates per WhatsApp? Antworten Sie mit JA.",
+        "body": "Hi, wir haben Ihren Anruf verpasst. Möchten Sie Updates per WhatsApp? Antworten Sie mit JA.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000,
@@ -248,7 +249,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $item(0).$json.phone }}",
-        "body": "Hi, wir haben Ihren Anruf verpasst. M\u00f6chten Sie Updates per WhatsApp? Antworten Sie mit JA.",
+        "body": "Hi, wir haben Ihren Anruf verpasst. Möchten Sie Updates per WhatsApp? Antworten Sie mit JA.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000,
@@ -269,7 +270,8 @@
         "operation": "append",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "Call_Log!A:C",
         "columns": {
@@ -361,7 +363,7 @@
     {
       "parameters": {
         "respondWith": "xml",
-        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zur\u00fcck.</Say>\n  <Pause length=\"1\"/>\n</Response>",
+        "responseBody": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Response>\n  <Say voice=\"alice\" language=\"de-DE\">Moin! Wir sind auf dem Dach. Wir rufen Sie gleich zurück.</Say>\n  <Pause length=\"1\"/>\n</Response>",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -601,14 +603,14 @@
       "main": [
         [
           {
-            "node": "Code - Circuit Breaker (Sheets)",
+            "node": "Respond - Validation Error",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond - Validation Error",
+            "node": "Code - Circuit Breaker (Sheets)",
             "type": "main",
             "index": 0
           }
@@ -630,19 +632,19 @@
       "main": [
         [
           {
-            "node": "Google Sheets - Lookup Customer",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Twilio - Respond to Webhook (TwiML)",
+            "node": "Respond - Graceful Degradation",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond - Graceful Degradation",
+            "node": "Google Sheets - Lookup Customer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Twilio - Respond to Webhook (TwiML)",
             "type": "main",
             "index": 0
           }

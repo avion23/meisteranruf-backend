@@ -139,7 +139,7 @@
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Google Sheets Opt-Out\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Google Sheets Opt-Out\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {
           "continueOnFail": true
         }
@@ -202,7 +202,8 @@
         "operation": "update",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}",
         "options": {}
@@ -269,7 +270,7 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "Vielen Dank f\u00fcr Ihre R\u00fcckmeldung.",
+        "responseBody": "Vielen Dank für Ihre Rückmeldung.",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -290,7 +291,7 @@
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Google Sheets Update Opt-In\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Google Sheets Update Opt-In\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {
           "continueOnFail": true
         }
@@ -350,7 +351,8 @@
         "operation": "update",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}",
         "options": {},
@@ -405,7 +407,7 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "Abmeldung best\u00e4tigt",
+        "responseBody": "Abmeldung bestätigt",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -426,7 +428,8 @@
         "operation": "lookup",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}",
         "lookupColumn": "Phone",
@@ -629,7 +632,8 @@
         "operation": "update",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}",
         "options": {},
@@ -655,7 +659,8 @@
         "operation": "update",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}",
         "options": {},
@@ -682,7 +687,8 @@
         "operation": "update",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}",
         "options": {},
@@ -709,7 +715,8 @@
         "operation": "update",
         "sheetId": {
           "__rl": true,
-          "mode": "url"
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         },
         "range": "={{ $env.GOOGLE_SHEETS_RANGE }}",
         "options": {},
@@ -765,7 +772,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "body": "Alles klar! Bitte senden Sie uns ein Foto von Ihrem Stromz\u00e4hler.",
+        "body": "Alles klar! Bitte senden Sie uns ein Foto von Ihrem Stromzähler.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
@@ -780,7 +787,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "body": "Bitte geben Sie eine g\u00fcltige 5-stellige Postleitzahl ein.",
+        "body": "Bitte geben Sie eine gültige 5-stellige Postleitzahl ein.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
@@ -795,7 +802,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "body": "Bitte geben Sie eine g\u00fcltige kWh-Zahl gr\u00f6\u00dfer als 0 ein.",
+        "body": "Bitte geben Sie eine gültige kWh-Zahl größer als 0 ein.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
@@ -810,7 +817,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "body": "Bitte senden Sie uns ein Foto Ihres Stromz\u00e4hlers.",
+        "body": "Bitte senden Sie uns ein Foto Ihres Stromzählers.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
@@ -922,14 +929,14 @@
       "main": [
         [
           {
-            "node": "Google Sheets - Lookup User",
+            "node": "Respond - Validation Error",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Respond - Validation Error",
+            "node": "Google Sheets - Lookup User",
             "type": "main",
             "index": 0
           }

@@ -16,7 +16,10 @@
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [250, 300]
+      "position": [
+        250,
+        300
+      ]
     },
     {
       "parameters": {
@@ -25,13 +28,21 @@
         "sheetName": "Customers",
         "options": {
           "valueRenderMode": "UNFORMATTED_VALUE"
+        },
+        "sheetId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
         }
       },
       "id": "query-expired-conversations",
       "name": "Query Expired Conversations",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [450, 300],
+      "position": [
+        450,
+        300
+      ],
       "credentials": {
         "googleApi": {
           "id": "",
@@ -47,7 +58,10 @@
       "name": "Filter Expired",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [650, 300]
+      "position": [
+        650,
+        300
+      ]
     },
     {
       "parameters": {
@@ -61,13 +75,21 @@
             "last_state_change": "={{ $now }}"
           }
         },
-        "options": {}
+        "options": {},
+        "sheetId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
+        }
       },
       "id": "update-to-expired",
       "name": "Update State to Expired",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [850, 300],
+      "position": [
+        850,
+        300
+      ],
       "credentials": {
         "googleApi": {
           "id": "",
@@ -94,7 +116,10 @@
       "name": "Telegram Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.1,
-      "position": [1050, 300],
+      "position": [
+        1050,
+        300
+      ],
       "continueOnFail": true
     },
     {
@@ -123,7 +148,10 @@
       "name": "Check If Empty",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [650, 500]
+      "position": [
+        650,
+        500
+      ]
     },
     {
       "parameters": {
@@ -133,7 +161,10 @@
       "name": "Log No Expired",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [850, 500]
+      "position": [
+        850,
+        500
+      ]
     },
     {
       "parameters": {
@@ -143,7 +174,10 @@
       "name": "Log Telegram Error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 400]
+      "position": [
+        1250,
+        400
+      ]
     }
   ],
   "connections": {
@@ -226,5 +260,9 @@
     "executionOrder": "v1"
   },
   "staticData": null,
-  "tags": ["timeout", "scheduled", "cleanup"]
+  "tags": [
+    "timeout",
+    "scheduled",
+    "cleanup"
+  ]
 }

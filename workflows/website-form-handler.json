@@ -1,0 +1,235 @@
+{
+  "name": "Website Form Submission Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "form-submission",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Website Form Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "form-submission"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract form data\nconst formData = {\n  name: $input.first().json.body?.name || $input.first().json.name || 'Unbekannt',\n  phone: $input.first().json.body?.phone || $input.first().json.phone || '',\n  installations: $input.first().json.body?.installations || $input.first().json.installations || '',\n  timestamp: new Date().toISOString(),\n  source: 'meisteranruf.de Website'\n};\n\n// Validate required fields\nif (!formData.name || !formData.phone) {\n  throw new Error('Name und Telefon sind Pflichtfelder');\n}\n\nreturn [formData];"
+      },
+      "id": "validate-node",
+      "name": "Validate Form Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": true, \"message\": \"Vielen Dank! Wir rufen Sie innerhalb von 24 Stunden zurück.\"}",
+        "options": {
+          "statusCode": 200
+        }
+      },
+      "id": "respond-success",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        650,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\"success\": false, \"message\": \"Es ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut oder rufen Sie uns an: +49 177 7250 851\"}",
+        "options": {
+          "statusCode": 500
+        }
+      },
+      "id": "respond-error",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        650,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "6853093449",
+        "text": "=🎯 NEUE WEBSITE-ANFRAGE\n\n👤 Name: {{ $json.name }}\n📞 Telefon: {{ $json.phone }}\n📊 Installationen/Monat: {{ $json.installations || 'Nicht angegeben' }}\n\n⏰ Eingegangen: {{ $json.timestamp }}\n🌐 Quelle: {{ $json.source }}",
+        "additionalFields": {}
+      },
+      "id": "telegram-node",
+      "name": "Send Telegram Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        850,
+        300
+      ],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "noreply@meisteranruf.de",
+        "toEmail": "ralf.waldukat@gmail.com",
+        "subject": "=🎯 Neue Website-Anfrage von {{ $json.name }}",
+        "text": "=Hallo Ralf,\n\nes gibt eine neue Anfrage über die Website:\n\nName/Firma: {{ $json.name }}\nTelefon: {{ $json.phone }}\nInstallationen/Monat: {{ $json.installations || 'Nicht angegeben' }}\n\nZeitpunkt: {{ $json.timestamp }}\n\nViele Grüße,\nMeisterAnruf Website",
+        "options": {}
+      },
+      "id": "email-node",
+      "name": "Send Email to Ralf",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1050,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "smtp-credentials",
+          "name": "SMTP Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": "${GOOGLE_SHEETS_SPREADSHEET_ID}",
+        "sheetName": "Sheet1",
+        "options": {},
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "Timestamp",
+              "fieldValue": "={{ $json.timestamp }}"
+            },
+            {
+              "fieldId": "Name",
+              "fieldValue": "={{ $json.name }}"
+            },
+            {
+              "fieldId": "Telefon",
+              "fieldValue": "={{ $json.phone }}"
+            },
+            {
+              "fieldId": "Installationen",
+              "fieldValue": "={{ $json.installations }}"
+            },
+            {
+              "fieldId": "Quelle",
+              "fieldValue": "={{ $json.source }}"
+            },
+            {
+              "fieldId": "Status",
+              "fieldValue": "=Neu"
+            }
+          ]
+        },
+        "sheetId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "${GOOGLE_SHEETS_SPREADSHEET_ID}"
+        }
+      },
+      "id": "sheets-node",
+      "name": "Add to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        1250,
+        300
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "google-sheets",
+          "name": "Google Sheets OAuth2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Website Form Webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate Form Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Form Data": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Telegram Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram Notification": {
+      "main": [
+        [
+          {
+            "node": "Send Email to Ralf",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email to Ralf": {
+      "main": [
+        [
+          {
+            "node": "Add to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Website",
+      "id": "tag-website"
+    },
+    {
+      "name": "Lead",
+      "id": "tag-lead"
+    }
+  ]
+}
