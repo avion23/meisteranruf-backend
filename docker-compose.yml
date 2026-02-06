@@ -1,122 +1,73 @@
+version: '3.8'
+
 services:
-  traefik:
-    image: traefik:v2.11
-    restart: always
-    environment:
-      - DOCKER_API_VERSION=1.44
-      - DUCKDNS_TOKEN=${DUCKDNS_TOKEN}
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=duckdns"
-      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.delaybeforecheck=90"
-      - "--certificatesresolvers.letsencrypt.acme.email=${SSL_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--ping=true"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entryPoint.permanent=true"
+  n8n:
+    image: n8nio/n8n:1.84.1  # PINNED: v1.x branch - v2.x task runners consume 300-600% CPU on 1GB RAM servers
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "./letsencrypt:/letsencrypt"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "5678:5678"
+    environment:
+      # Database (SQLite - simple, no extra container)
+      DB_TYPE: sqlite
+      DB_SQLITE_PRAGMAS: "journal_mode=WAL;busy_timeout=60000;synchronous=NORMAL;temp_store=MEMORY;wal_autocheckpoint=100"
+      N8N_DB_MIGRATIONS_TIMEOUT: 300000
+      
+      # Instance settings
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      NODE_ENV: production
+      WEBHOOK_URL: https://${N8N_HOST:-localhost}/
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-Europe/Berlin}
+      
+      # Security
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_USER_MANAGEMENT_JWT_SECRET: ${N8N_USER_MANAGEMENT_JWT_SECRET}
+      
+      # Performance (CRITICAL for 1GB RAM)
+      N8N_CONCURRENCY_PRODUCTION_LIMIT: "1"   # Single execution at a time
+      EXECUTIONS_TIMEOUT: "3600"               # 1 hour max
+      EXECUTIONS_TIMEOUT_MAX: "3600"           # 1 hour max
+      NODE_OPTIONS: "--max-old-space-size=768 --max-semi-space-size=128"
+      
+      # Data management
+      N8N_DEFAULT_BINARY_DATA_MODE: filesystem
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: "168"           # 7 days
+      EXECUTIONS_DATA_SAVE_ON_SUCCESS: "none"  # Save memory
+      
+      # Disable optional features to save CPU/memory
+      N8N_METRICS: "false"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_RUNNERS_ENABLED: "false"
+      
+      # Logging
+      N8N_LOG_LEVEL: info
+      N8N_LOG_OUTPUT: console
+      
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 768M
+          cpus: '1.0'
         reservations:
-          memory: 32M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - vorzimmerdrache
-
-  n8n:
-    image: docker.n8n.io/n8nio/n8n:1.84.1
-    restart: always
-    environment:
-      - N8N_HOST=${DOMAIN:-instance1.duckdns.org}
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://${DOMAIN:-instance1.duckdns.org}
-      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
-      - N8N_USER_MANAGEMENT_JWT_SECRET=${N8N_USER_MANAGEMENT_JWT_SECRET}
-      - EXECUTIONS_TIMEOUT=300
-      - EXECUTIONS_TIMEOUT_MAX=3600
-      - NODE_ENV=production
-      - GENERIC_TIMEZONE=Europe/Berlin
-      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
-      - EXECUTIONS_DATA_PRUNE=true
-      - EXECUTIONS_DATA_MAX_AGE=168
-      - DB_TYPE=sqlite
-
-      - N8N_OAUTH_CALLBACK_REQUIRES_AUTH=false
-      - DB_SQLITE_PRAGMAS=journal_mode=WAL;busy_timeout=60000;synchronous=NORMAL;temp_store=MEMORY;wal_autocheckpoint=100
-      - N8N_CONCURRENCY_PRODUCTION_LIMIT=1
-      - N8N_DB_MIGRATIONS_TIMEOUT=300000
-      - N8N_PROXY_HOPS=1
-      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
-      - GOOGLE_SHEETS_SPREADSHEET_ID=${GOOGLE_SHEETS_SPREADSHEET_ID}
-      - GOOGLE_SHEETS_SHEET_NAME=${GOOGLE_SHEETS_SHEET_NAME:-Sheet1}
-      - GOOGLE_SHEETS_RANGE=${GOOGLE_SHEETS_RANGE}
-      - N8N_WEBHOOK_URL=${N8N_WEBHOOK_URL}
-      - GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
-      - GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
-      - TWILIO_WHATSAPP_SENDER=${TWILIO_WHATSAPP_SENDER}
-      - TELEGRAM_BOT_API_URL=${TELEGRAM_BOT_API_URL}
-      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-      - BLACKLISTED_NUMBERS=${BLACKLISTED_NUMBERS}
+          memory: 512M
+          cpus: '0.5'
+    
     volumes:
       - n8n_data:/home/node/.n8n
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`${DOMAIN:-instance1.duckdns.org}`)"
-      - "traefik.http.routers.n8n.entrypoints=web,websecure"
-      - "traefik.http.routers.n8n.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.n8n.middlewares=n8n-headers,n8n-ratelimit"
-      - "traefik.http.routers.n8n.service=n8n"
-      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
-      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Frame-Options=DENY"
-      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.X-Content-Type-Options=nosniff"
-      - "traefik.http.middlewares.n8n-headers.headers.customrequestheaders.Content-Security-Policy=default-src 'self'"
-      - "traefik.http.middlewares.n8n-ratelimit.ratelimit.average=100"
-      - "traefik.http.middlewares.n8n-ratelimit.ratelimit.burst=200"
+    
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5678/healthz', (r) => process.exit(r.statusCode === 200 ? 0 : 1))\""]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 384M
-        reservations:
-          memory: 128M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    networks:
-      - vorzimmerdrache
 
 volumes:
   n8n_data:
-    name: vorzimmerdrache_n8n_data
-    external: true
+    driver: local
 
 networks:
-  vorzimmerdrache:
+  default:
     driver: bridge

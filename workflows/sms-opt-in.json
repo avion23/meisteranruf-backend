@@ -469,6 +469,62 @@
     },
     {
       "parameters": {
+        "jsCode": "// Compact State Machine Validation\nconst parseSmsResult = $('Code - Parse SMS').first()?.json || {};\nconst msg = (parseSmsResult.response || '').trim().toLowerCase();\nconst state = $json.conversationState || '';\nconst mediaCount = parseInt(parseSmsResult.numMedia || 0);\n\nconst transitions = {\n    '': {\n        valid: (m) => ['ja', 'jo', 'yes', 'okay', 'ok'].includes(m),\n        next: 'awaiting_plz',\n        response: \"Danke! Bitte sende mir deine Postleitzahl (5 Zahlen).\"\n    },\n    'awaiting_plz': {\n        valid: (m) => /^\\d{5}$/.test(m),\n        next: 'awaiting_kwh',\n        response: \"Perfekt! Wie hoch ist dein Jahresverbrauch in kWh?\"\n    },\n    'awaiting_kwh': {\n        valid: (m) => {\n            const num = parseInt(m.replace(/[^0-9]/g, ''));\n            return !isNaN(num) && num > 0 && num < 50000;\n        },\n        next: 'awaiting_foto',\n        response: \"Danke! Bitte sende mir ein Foto vom Zählerschrank.\"\n    },\n    'awaiting_foto': {\n        valid: (m, media) => media > 0,\n        next: 'qualified_complete',\n        response: \"Super! Ich schicke dir gleich alle Infos per WhatsApp.\"\n    }\n};\n\nconst current = transitions[state];\n\nif (current && current.valid(msg, mediaCount)) {\n    return [{\n        json: {\n            valid: true,\n            next_state: current.next,\n            response: current.response,\n            extracted_value: state === 'awaiting_kwh' ? parseInt(msg.replace(/[^0-9]/g, '')) : msg,\n            phone: parseSmsResult.phone\n        }\n    }];\n} else {\n    const errorMsgs = {\n        '': \"Bitte antworte mit JA für WhatsApp-Support.\",\n        'awaiting_plz': \"Das war keine gültige PLZ. Bitte 5 Zahlen.\",\n        'awaiting_kwh': \"Bitte gib nur den Verbrauch als Zahl an.\",\n        'awaiting_foto': \"Bitte sende ein Foto vom Zählerschrank.\"\n    };\n    return [{\n        json: {\n            valid: false,\n            retry_msg: errorMsgs[state] || \"Bitte versuche es nochmal.\",\n            current_state: state,\n            phone: parseSmsResult.phone\n        }\n    }];\n}"
+      },
+      "name": "Code - Compact State Validator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-valid",
+              "leftValue": "={{ $json.valid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF - Validation Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.phone }}",
+        "message": "={{ $json.retry_msg }}",
+        "options": {
+          "maxTries": 3,
+          "waitBetweenTries": 2000
+        }
+      },
+      "name": "Twilio - Send Validation Error",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "credentials": {
+        "twilioApi": {
+          "id": "c6910f87-73ba-4094-acbd-7986707ac65d",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "rules": {
           "values": [
             {
@@ -915,6 +971,64 @@
       "name": "Respond - 3Q Complete",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-duplicate",
+              "leftValue": "={{ $json.isDuplicate }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "condition-race",
+              "leftValue": "={{ $json.isPotentialRace }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "name": "IF - Duplicate Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Nachricht wird bereits verarbeitet.",
+        "responseHeaders": {
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "text/plain"
+              }
+            ]
+          }
+        },
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Respond - Duplicate",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1
     }
   ],
   "connections": {
@@ -1189,6 +1303,46 @@
         ]
       ]
     },
+    "Code - Compact State Validator": {
+      "main": [
+        [
+          {
+            "node": "IF - Validation Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Validation Success": {
+      "main": [
+        [
+          {
+            "node": "Switch - State Router",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Twilio - Send Validation Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twilio - Send Validation Error": {
+      "main": [
+        [
+          {
+            "node": "Respond - 3Q Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Switch - State Router": {
       "main": [
         [
@@ -1422,6 +1576,27 @@
       ]
     },
     "Respond - 3Q Complete": {
+      "main": []
+    },
+    "IF - Duplicate Check": {
+      "main": [
+        [
+          {
+            "node": "Respond - Duplicate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code - Compact State Validator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond - Duplicate": {
       "main": []
     }
   },
