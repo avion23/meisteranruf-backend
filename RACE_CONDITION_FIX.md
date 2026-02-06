@@ -1,79 +1,121 @@
 # Race Condition Protection Implementation
 
 ## Problem
-The original workflow used Google Sheets as a real-time state database. When two SMS arrived simultaneously:
-1. SMS 1 reads state "empty"
-2. SMS 2 reads state "empty" (before SMS 1 writes)
-3. SMS 1 writes state "awaiting_plz"
-4. SMS 2 overwrites with state "awaiting_plz"
 
-This caused lost updates and inconsistent conversation states.
+Das Original-System nutzte Google Sheets als Echtzeit-State-Datenbank. Bei gleichzeitigen SMS:
+1. SMS 1 liest State "empty"
+2. SMS 2 liest State "empty" (bevor SMS 1 schreibt)
+3. SMS 1 schreibt State "awaiting_plz"
+4. SMS 2 überschreibt mit State "awaiting_plz"
 
-## Solution Implemented
+Resultat: Verlorene Updates, inkonsistente Konversations-States.
 
-### 1. MessageSid Deduplication (sms-opt-in.json)
-Added extraction of Twilio's `MessageSid` in the "Code - Parse SMS" node:
-- Each SMS has a unique MessageSid
-- Check if this MessageSid was already processed
-- Skip duplicate processing
+## Lösung: Mehrschichtiger Schutz
 
-### 2. Timestamp-Based Race Detection
-Added `processingTimestamp` to track when SMS was received:
-- If last update was < 5 seconds ago, flag as potential race condition
-- Allows for retry logic or manual review
+### Layer 1: MessageSid Deduplizierung (sms-opt-in.json)
 
-### 3. Updated State Extraction Node
-Renamed "Code - Extract State" to "Code - Extract State + Deduplication":
-- Checks for duplicate MessageSid
-- Checks for rapid successive updates (potential race)
-- Returns flags for workflow routing
+Jede SMS hat eine eindeutige Twilio `MessageSid`:
+- Prüfe ob diese MessageSid bereits verarbeitet wurde
+- Überspringe Duplikate sofort
+- Speichere `last_message_sid` in Google Sheets
 
-## Required Google Sheets Schema Updates
+### Layer 2: Timestamp-basierte Race Detection
 
-Add these columns to your Google Sheet:
+`processingTimestamp` trackt wann SMS empfangen wurde:
+- Wenn letztes Update < 5 Sekunden her: Potenzielle Race Condition
+- Flag für Workflow-Routing
+
+### Layer 3: File-Based Locking (NEU)
+
+**Warum?** Die Review-Kritik war berechtigt: Sheets-Latenz ist unzuverlässig.
+
+**Implementierung:**
+```javascript
+// Code - Acquire Lock
+const fs = require('fs');
+const lockFile = `/tmp/n8n-locks/${phone.replace(/[^0-9]/g, '')}.lock`;
+
+// Atomare Lock-Erzeugung mit fs.writeFileSync(..., { flag: 'wx' })
+// Auto-Expiry nach 30 Sekunden (stale lock detection)
+```
+
+**Ablauf:**
+1. Webhook empfangen → Signature-Check
+2. Spam-Filter (Blacklist + Rate-Limit)
+3. **Lock erwerben** → Falls belegt: "Bitte warten..."
+4. State aus Sheets lesen
+5. State Machine validieren
+6. State in Sheets schreiben
+7. Antwort senden
+8. **Lock automatisch frei** (nach 30s oder Ende der Execution)
+
+### Layer 4: Single-Threaded Execution (Hardware-Level)
+
+```yaml
+# docker-compose.yml
+N8N_CONCURRENCY_PRODUCTION_LIMIT: "1"  # Nur eine Execution gleichzeitig
+N8N_EXECUTIONS_PROCESS: "main"          # Keine Worker-Prozesse
+```
+
+**Effekt:** Selbst wenn File-Locking failt, kann nur ein Request gleichzeitig laufen.
+
+## Google Sheets Schema
+
+Erforderliche Spalten:
 
 | Column Name | Purpose |
 |-------------|---------|
-| `last_message_sid` | Stores the last processed Twilio MessageSid |
-| `last_processed_at` | ISO timestamp of last update |
+| `phone` | Telefonnummer (E.164) |
+| `conversation_state` | Aktueller State (awaiting_plz, awaiting_kwh, etc.) |
+| `last_message_sid` | Letzte verarbeitete Twilio MessageSid |
+| `last_processed_at` | ISO-Timestamp letzter Update |
+| `OptIn_Timestamp` | DSGVO: Zeitpunkt des "JA" (Proof of Consent) |
+| `plz` | Postleitzahl |
+| `kwh` | Jahresverbrauch |
+| `OptIn_Status` | subscribed / unsubscribed |
 
-## Remaining Work (Manual Steps)
+## Manuelle Schritte nach Deployment
 
-1. **Add IF Node for Duplicate Check**
-   - After "Code - Extract State + Deduplication"
-   - Check: `isDuplicate = true` OR `isPotentialRace = true`
-   - If true: Send response and exit
-   - If false: Continue to "Switch - State Router"
+1. **Spalten zu Google Sheets hinzufügen:**
+   - `last_message_sid`
+   - `last_processed_at`  
+   - `OptIn_Timestamp`
 
-2. **Update Google Sheets Nodes**
-   All update nodes must include:
-   ```json
-   "last_message_sid": "={{ $json.messageSid }}"
-   "last_processed_at": "={{ $json.processingTimestamp }}"
+2. **Workflow importieren:**
+   - `sms-opt-in.json` in n8n importieren
+   - Credentials konfigurieren
+   - Workflow aktivieren
+
+3. **Testen:**
+   ```bash
+   # Race Condition Test
+   curl -X POST https://<DOMAIN>/webhook/sms-response \
+     -d "From=+491711234567" \
+     -d "Body=JA" \
+     -d "MessageSid=TEST001" &
+   
+   curl -X POST https://<DOMAIN>/webhook/sms-response \
+     -d "From=+491711234567" \
+     -d "Body=JA" \
+     -d "MessageSid=TEST001" &
+   # Zweiter Request sollte sofort mit "wird bereits verarbeitet" antworten
    ```
 
-3. **Add Duplicate Response Node**
-   - Respond with: "Nachricht wird bereits verarbeitet."
-   - HTTP 200 (to prevent Twilio retries)
+## Alternative: Redis Locking
 
-## Files Modified
+Für höhere Concurrency (>10 gleichzeitige Anrufe):
+```javascript
+// Redis RedLock Beispiel
+const RedLock = require('redlock');
+const lock = await redlock.acquire([`locks:${phone}`], 1000);
+// ... processing ...
+await lock.release();
+```
 
-- `backend/workflows/sms-opt-in.json`:
-  - Updated "Code - Parse SMS" to extract MessageSid and timestamp
-  - Renamed and updated "Code - Extract State" to include deduplication logic
+**Aber:** Redis braucht +200MB RAM → Nicht für 1GB VPS geeignet.
 
-## Validation Already Exists
+## Fazit
 
-The review incorrectly stated "no strict validation". The workflow already has:
-- **PLZ**: `/^\d{5}$/` - strict 5-digit validation
-- **kWh**: `!isNaN(numValue) && numValue > 0` - positive number validation  
-- **Photo**: `numMedia > 0` - requires at least one media attachment
+Das aktuelle System (File Locking + MessageSid + Single-Threaded) ist für einen 1GB VPS mit moderatem Traffic (<50 Anrufe/Tag) ausreichend robust. Die Kritik aus der Review war berechtigt, aber die Lösung ist pragmatisch, nicht akademisch.
 
-## Alternative: SQLite State Management
-
-For stronger consistency guarantees, consider:
-1. Using n8n's built-in SQLite for state storage
-2. Or implementing a Redis cache layer
-3. Or using Google Sheets only as a log, not as state storage
-
-However, for an MVP with low concurrent usage, the MessageSid deduplication + timestamp approach is sufficient.
+**Trade-off akzeptiert:** Sheets-Latenz vs. Einfachheit. File-Locking fängt die meisten Race Conditions ab, Single-Threaded-Execution den Rest.

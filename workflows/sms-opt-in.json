@@ -71,9 +71,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const inputData = $input.first()?.json || {};\nconst bodyData = inputData.body || {};\nconst body = bodyData.Body || '';\nconst phone = bodyData.From || '';\nconst messageSid = bodyData.MessageSid || '';\nconst normalizedResponse = body.trim().toLowerCase();\n\n// Validate SMS body is not empty\nif (!body || body.trim().length === 0) {\n  return [{ json: { error: 'Empty SMS body', validationError: true } }];\n}\n\n// STOP keyword detection (DSGVO Opt-out)\nconst stopWords = ['stop', 'abmelden', 'abbestellen', 'ende', 'stopp', 'unsubscribe'];\nconst isStopRequest = stopWords.some(word => normalizedResponse.includes(word));\n\nif (isStopRequest) {\n  return [{ json: { phone: phone.replace(/[^0-9+]/g, ''), response: body, action: 'unsubscribe', isStopRequest: true, messageSid } }];\n}\n\n// Affirmative response detection\nconst affirmativePatterns = ['ja', 'yes', 'ok', 'okay', 'jaa', 'klar', 'gerne', 'ja bitte'];\nconst isValidResponse = affirmativePatterns.some(pattern => normalizedResponse.includes(pattern));\n\n// Phone normalization (international support)\nlet p = phone.replace(/[^0-9+]/g, '');\nif (p.startsWith('+')) {\n  // Keep international format\n} else if (p.startsWith('00')) {\n  p = '+' + p.substring(2);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (!p.startsWith('+') && p.length > 0) {\n  p = '+49' + p;\n}\n\n// Extract media fields for 3-question flow\nconst numMedia = parseInt(bodyData.NumMedia || '0');\nconst mediaUrl0 = bodyData.MediaUrl0 || null;\n\n// Check 3-question feature flag\nconst use3Question = true;  // DSGVO: 3-Question mandatory\n\n// Generate processing timestamp for race condition protection\nconst processingTimestamp = new Date().toISOString();\n\nreturn [{ json: { \n  phone: p, \n  response: body, \n  isValidResponse, \n  action: isValidResponse ? 'opt-in' : 'unknown',\n  numMedia,\n  mediaUrl0,\n  use3Question,\n  messageSid,\n  processingTimestamp\n} }];"
+        "jsCode": "// SPAM FILTER + SMS Parser\nconst inputData = $input.first()?.json || {};\nconst bodyData = inputData.body || {};\nconst body = bodyData.Body || '';\nconst phone = bodyData.From || '';\nconst messageSid = bodyData.MessageSid || '';\nconst normalizedResponse = body.trim().toLowerCase();\n\n// Validate SMS body is not empty\nif (!body || body.trim().length === 0) {\n  return [{ json: { error: 'Empty SMS body', validationError: true } }];\n}\n\n// Phone normalization (international support)\nlet p = phone.replace(/[^0-9+]/g, '');\nif (p.startsWith('+')) {\n  // Keep international format\n} else if (p.startsWith('00')) {\n  p = '+' + p.substring(2);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (!p.startsWith('+') && p.length > 0) {\n  p = '+49' + p;\n}\n\n// SPAM FILTER CHECK\nconst blacklistedNumbers = ($env.BLACKLISTED_NUMBERS || '').split(',').map(n => n.trim()).filter(n => n);\nconst isBlacklisted = blacklistedNumbers.includes(p);\n\n// Rate limiting: Max 10 SMS per hour per number\nconst staticData = $getWorkflowStaticData('global');\nconst now = Date.now();\nconst oneHour = 60 * 60 * 1000;\nconst maxSmsPerHour = 10;\n\nif (!staticData.smsRateLimit) {\n  staticData.smsRateLimit = {};\n}\nif (!staticData.smsRateLimit[p]) {\n  staticData.smsRateLimit[p] = [];\n}\n\n// Clean old entries\nstaticData.smsRateLimit[p] = staticData.smsRateLimit[p].filter(ts => now - ts < oneHour);\n\n// Check rate limit\nconst isRateLimited = staticData.smsRateLimit[p].length >= maxSmsPerHour;\n\nif (!isRateLimited && !isBlacklisted) {\n  // Track this SMS for rate limiting\n  staticData.smsRateLimit[p].push(now);\n}\n\n// STOP keyword detection (DSGVO Opt-out)\nconst stopWords = ['stop', 'abmelden', 'abbestellen', 'ende', 'stopp', 'unsubscribe'];\nconst isStopRequest = stopWords.some(word => normalizedResponse.includes(word));\n\nif (isStopRequest) {\n  return [{ json: { phone: p, response: body, action: 'unsubscribe', isStopRequest: true, messageSid, isBlacklisted, isRateLimited } }];\n}\n\n// Affirmative response detection\nconst affirmativePatterns = ['ja', 'yes', 'ok', 'okay', 'jaa', 'klar', 'gerne', 'ja bitte'];\nconst isValidResponse = affirmativePatterns.some(pattern => normalizedResponse.includes(pattern));\n\n// Extract media fields for 3-question flow\nconst numMedia = parseInt(bodyData.NumMedia || '0');\nconst mediaUrl0 = bodyData.MediaUrl0 || null;\n\n// Check 3-question feature flag\nconst use3Question = true;  // DSGVO: 3-Question mandatory\n\n// Generate processing timestamp for race condition protection\nconst processingTimestamp = new Date().toISOString();\n\n// DSGVO: Track opt-in timestamp\nconst optInTimestamp = isValidResponse ? processingTimestamp : null;\n\nreturn [{ json: { \n  phone: p, \n  response: body, \n  isValidResponse, \n  action: isValidResponse ? 'opt-in' : 'unknown',\n  numMedia,\n  mediaUrl0,\n  use3Question,\n  messageSid,\n  processingTimestamp,\n  optInTimestamp,\n  isBlacklisted,\n  isRateLimited\n} }];"
       },
-      "name": "Code - Parse SMS",
+      "name": "Code - Spam Filter + Parse SMS",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2
     },
@@ -84,6 +84,121 @@
       "name": "Code - Validate Phone Format",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-blacklist",
+              "leftValue": "={{ $json.isBlacklisted }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            },
+            {
+              "id": "condition-rate-limit",
+              "leftValue": "={{ $json.isRateLimited }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "isTrue"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "name": "IF - Spam Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Service nicht verfügbar.",
+        "responseHeaders": {
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "text/plain"
+              }
+            ]
+          }
+        },
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Respond - Spam Blocked",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// FILE-BASED LOCKING - Prevents race conditions on Google Sheets\nconst fs = require('fs');\nconst path = require('path');\n\nconst phone = $json.phone;\nconst lockDir = '/tmp/n8n-locks';\nconst lockFile = path.join(lockDir, `${phone.replace(/[^0-9]/g, '')}.lock`);\nconst lockTimeout = 30000; // 30 seconds max lock time\n\n// Ensure lock directory exists\ntry {\n  if (!fs.existsSync(lockDir)) {\n    fs.mkdirSync(lockDir, { recursive: true });\n  }\n} catch (e) {\n  // Directory might already exist\n}\n\n// Try to acquire lock\nlet lockAcquired = false;\nlet lockAge = 0;\n\ntry {\n  // Check if lock exists and is not stale\n  if (fs.existsSync(lockFile)) {\n    const stats = fs.statSync(lockFile);\n    lockAge = Date.now() - stats.mtime.getTime();\n    \n    if (lockAge > lockTimeout) {\n      // Stale lock - remove it\n      try {\n        fs.unlinkSync(lockFile);\n      } catch (e) {\n        // Lock might have been removed by another process\n      }\n    }\n  }\n  \n  // Try to create lock file (atomic operation)\n  try {\n    fs.writeFileSync(lockFile, JSON.stringify({\n      pid: process.pid,\n      timestamp: new Date().toISOString(),\n      messageSid: $json.messageSid\n    }), { flag: 'wx' });\n    lockAcquired = true;\n  } catch (e) {\n    // Lock already exists\n    lockAcquired = false;\n  }\n} catch (e) {\n  // If we can't create locks, proceed anyway (fail open)\n  lockAcquired = true;\n}\n\nreturn [{\n  json: {\n    ...$json,\n    lockAcquired,\n    lockFile,\n    lockAge\n  }\n}];"
+      },
+      "name": "Code - Acquire Lock",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "condition-lock",
+              "leftValue": "={{ $json.lockAcquired }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "isFalse"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF - Lock Acquired",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Bitte warten...",
+        "responseHeaders": {
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "text/plain"
+              }
+            ]
+          }
+        },
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Respond - Lock Busy",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1
     },
     {
       "parameters": {
@@ -211,7 +326,8 @@
           "mappingMode": "defineBelow",
           "value": {
             "last_message_sid": "={{ $json.messageSid }}",
-            "last_processed_at": "={{ $json.processingTimestamp }}"
+            "last_processed_at": "={{ $json.processingTimestamp }}",
+            "OptIn_Timestamp": "={{ $json.optInTimestamp }}"
           }
         }
       },
@@ -470,7 +586,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const lookupResult = $input.first()?.json || {};\nconst parseSmsResult = $('Code - Parse SMS').first()?.json || {};\nconst phone = parseSmsResult.phone || '';\nconst conversationState = lookupResult.conversation_state || '';\nconst lastMessageSid = lookupResult.last_message_sid || '';\nconst currentMessageSid = parseSmsResult.messageSid || '';\n\n// Race Condition Protection: Check for duplicate SMS\nif (lastMessageSid && lastMessageSid === currentMessageSid) {\n  return [{ json: { phone, conversationState, rowData: lookupResult, isDuplicate: true, reason: 'MessageSid already processed' } }];\n}\n\n// Race Condition Protection: Check processing timestamp\nconst lastProcessed = lookupResult.last_processed_at;\nconst currentTimestamp = parseSmsResult.processingTimestamp;\nif (lastProcessed) {\n  const lastTime = new Date(lastProcessed).getTime();\n  const currentTime = new Date(currentTimestamp).getTime();\n  const timeDiff = currentTime - lastTime;\n  // If less than 5 seconds since last update, potential race condition\n  if (timeDiff < 5000) {\n    return [{ json: { phone, conversationState, rowData: lookupResult, isPotentialRace: true, timeDiff } }];\n  }\n}\n\nreturn [{ json: { phone, conversationState, rowData: lookupResult, messageSid: currentMessageSid, processingTimestamp: currentTimestamp, isDuplicate: false } }];"
+        "jsCode": "const lookupResult = $input.first()?.json || {};\nconst parseSmsResult = $('Code - Spam Filter + Parse SMS').first()?.json || {};\nconst phone = parseSmsResult.phone || '';\nconst conversationState = lookupResult.conversation_state || '';\nconst lastMessageSid = lookupResult.last_message_sid || '';\nconst currentMessageSid = parseSmsResult.messageSid || '';\n\n// Race Condition Protection: Check for duplicate SMS\nif (lastMessageSid && lastMessageSid === currentMessageSid) {\n  return [{ json: { phone, conversationState, rowData: lookupResult, isDuplicate: true, reason: 'MessageSid already processed' } }];\n}\n\n// Race Condition Protection: Check processing timestamp\nconst lastProcessed = lookupResult.last_processed_at;\nconst currentTimestamp = parseSmsResult.processingTimestamp;\nif (lastProcessed) {\n  const lastTime = new Date(lastProcessed).getTime();\n  const currentTime = new Date(currentTimestamp).getTime();\n  const timeDiff = currentTime - lastTime;\n  // If less than 5 seconds since last update, potential race condition\n  if (timeDiff < 5000) {\n    return [{ json: { phone, conversationState, rowData: lookupResult, isPotentialRace: true, timeDiff } }];\n  }\n}\n\nreturn [{ json: { phone, conversationState, rowData: lookupResult, messageSid: currentMessageSid, processingTimestamp: currentTimestamp, isDuplicate: false } }];"
       },
       "name": "Code - Extract State + Deduplication",
       "type": "n8n-nodes-base.code",
@@ -478,7 +594,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Compact State Machine Validation\nconst parseSmsResult = $('Code - Parse SMS').first()?.json || {};\nconst msg = (parseSmsResult.response || '').trim().toLowerCase();\nconst state = $json.conversationState || '';\nconst mediaCount = parseInt(parseSmsResult.numMedia || 0);\n\nconst transitions = {\n    '': {\n        valid: (m) => ['ja', 'jo', 'yes', 'okay', 'ok'].includes(m),\n        next: 'awaiting_plz',\n        response: \"Danke! Bitte sende mir deine Postleitzahl (5 Zahlen).\"\n    },\n    'awaiting_plz': {\n        valid: (m) => /^\\d{5}$/.test(m),\n        next: 'awaiting_kwh',\n        response: \"Perfekt! Wie hoch ist dein Jahresverbrauch in kWh?\"\n    },\n    'awaiting_kwh': {\n        valid: (m) => {\n            const num = parseInt(m.replace(/[^0-9]/g, ''));\n            return !isNaN(num) && num > 0 && num < 50000;\n        },\n        next: 'awaiting_foto',\n        response: \"Danke! Bitte sende mir ein Foto vom Zählerschrank.\"\n    },\n    'awaiting_foto': {\n        valid: (m, media) => media > 0,\n        next: 'qualified_complete',\n        response: \"Super! Ich schicke dir gleich alle Infos per WhatsApp.\"\n    }\n};\n\nconst current = transitions[state];\n\nif (current && current.valid(msg, mediaCount)) {\n    return [{\n        json: {\n            valid: true,\n            next_state: current.next,\n            response: current.response,\n            extracted_value: state === 'awaiting_kwh' ? parseInt(msg.replace(/[^0-9]/g, '')) : msg,\n            phone: parseSmsResult.phone\n        }\n    }];\n} else {\n    const errorMsgs = {\n        '': \"Bitte antworte mit JA für WhatsApp-Support.\",\n        'awaiting_plz': \"Das war keine gültige PLZ. Bitte 5 Zahlen.\",\n        'awaiting_kwh': \"Bitte gib nur den Verbrauch als Zahl an.\",\n        'awaiting_foto': \"Bitte sende ein Foto vom Zählerschrank.\"\n    };\n    return [{\n        json: {\n            valid: false,\n            retry_msg: errorMsgs[state] || \"Bitte versuche es nochmal.\",\n            current_state: state,\n            phone: parseSmsResult.phone\n        }\n    }];\n}"
+        "jsCode": "// Compact State Machine Validation\nconst parseSmsResult = $('Code - Spam Filter + Parse SMS').first()?.json || {};\nconst msg = (parseSmsResult.response || '').trim().toLowerCase();\nconst state = $json.conversationState || '';\nconst mediaCount = parseInt(parseSmsResult.numMedia || 0);\n\nconst transitions = {\n    '': {\n        valid: (m) => ['ja', 'jo', 'yes', 'okay', 'ok'].includes(m),\n        next: 'awaiting_plz',\n        response: \"Danke! Bitte sende mir deine Postleitzahl (5 Zahlen).\"\n    },\n    'awaiting_plz': {\n        valid: (m) => /^\\d{5}$/.test(m),\n        next: 'awaiting_kwh',\n        response: \"Perfekt! Wie hoch ist dein Jahresverbrauch in kWh?\"\n    },\n    'awaiting_kwh': {\n        valid: (m) => {\n            const num = parseInt(m.replace(/[^0-9]/g, ''));\n            return !isNaN(num) && num > 0 && num < 50000;\n        },\n        next: 'awaiting_foto',\n        response: \"Danke! Bitte sende mir ein Foto vom Zählerschrank.\"\n    },\n    'awaiting_foto': {\n        valid: (m, media) => media > 0,\n        next: 'qualified_complete',\n        response: \"Super! Ich schicke dir gleich alle Infos per WhatsApp.\"\n    }\n};\n\nconst current = transitions[state];\n\nif (current && current.valid(msg, mediaCount)) {\n    return [{\n        json: {\n            valid: true,\n            next_state: current.next,\n            response: current.response,\n            extracted_value: state === 'awaiting_kwh' ? parseInt(msg.replace(/[^0-9]/g, '')) : msg,\n            phone: parseSmsResult.phone\n        }\n    }];\n} else {\n    const errorMsgs = {\n        '': \"Bitte antworte mit JA für WhatsApp-Support.\",\n        'awaiting_plz': \"Das war keine gültige PLZ. Bitte 5 Zahlen.\",\n        'awaiting_kwh': \"Bitte gib nur den Verbrauch als Zahl an.\",\n        'awaiting_foto': \"Bitte sende ein Foto vom Zählerschrank.\"\n    };\n    return [{\n        json: {\n            valid: false,\n            retry_msg: errorMsgs[state] || \"Bitte versuche es nochmal.\",\n            current_state: state,\n            phone: parseSmsResult.phone\n        }\n    }];\n}"
       },
       "name": "Code - Compact State Validator",
       "type": "n8n-nodes-base.code",
@@ -665,7 +781,7 @@
           "conditions": [
             {
               "id": "condition-ja",
-              "leftValue": "={{ $('Code - Parse SMS').first().json.response.trim().toLowerCase() }}",
+              "leftValue": "={{ $('Code - Spam Filter + Parse SMS').first().json.response.trim().toLowerCase() }}",
               "rightValue": "ja",
               "operator": {
                 "type": "string",
@@ -683,7 +799,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const response = $('Code - Parse SMS').first().json.response.trim(); const plzPattern = /^\\d{5}$/; const isValid = plzPattern.test(response); return [{ json: { phone: $('Code - Parse SMS').first().json.phone, response, isValid, fieldType: 'plz' } }];"
+        "jsCode": "const response = $('Code - Spam Filter + Parse SMS').first().json.response.trim(); const plzPattern = /^\\d{5}$/; const isValid = plzPattern.test(response); return [{ json: { phone: $('Code - Spam Filter + Parse SMS').first().json.phone, response, isValid, fieldType: 'plz' } }];"
       },
       "name": "Code - Validate PLZ",
       "type": "n8n-nodes-base.code",
@@ -691,7 +807,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const response = $('Code - Parse SMS').first().json.response.trim(); const numValue = parseFloat(response); const isValid = !isNaN(numValue) && numValue > 0; return [{ json: { phone: $('Code - Parse SMS').first().json.phone, response, isValid, fieldType: 'kwh' } }];"
+        "jsCode": "const response = $('Code - Spam Filter + Parse SMS').first().json.response.trim(); const numValue = parseFloat(response); const isValid = !isNaN(numValue) && numValue > 0; return [{ json: { phone: $('Code - Spam Filter + Parse SMS').first().json.phone, response, isValid, fieldType: 'kwh' } }];"
       },
       "name": "Code - Validate kWh",
       "type": "n8n-nodes-base.code",
@@ -699,7 +815,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const numMedia = parseInt($('Code - Parse SMS').first().json.numMedia || '0'); const isValid = numMedia > 0; return [{ json: { phone: $('Code - Parse SMS').first().json.phone, numMedia, isValid, fieldType: 'photo' } }];"
+        "jsCode": "const numMedia = parseInt($('Code - Spam Filter + Parse SMS').first().json.numMedia || '0'); const isValid = numMedia > 0; return [{ json: { phone: $('Code - Spam Filter + Parse SMS').first().json.phone, numMedia, isValid, fieldType: 'photo' } }];"
       },
       "name": "Code - Validate Photo",
       "type": "n8n-nodes-base.code",
@@ -1075,7 +1191,7 @@
       "main": [
         [
           {
-            "node": "Code - Parse SMS",
+            "node": "Code - Spam Filter + Parse SMS",
             "type": "main",
             "index": 0
           }
@@ -1089,7 +1205,7 @@
         ]
       ]
     },
-    "Code - Parse SMS": {
+    "Code - Spam Filter + Parse SMS": {
       "main": [
         [
           {
@@ -1104,12 +1220,65 @@
       "main": [
         [
           {
+            "node": "IF - Spam Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Spam Check": {
+      "main": [
+        [
+          {
+            "node": "Respond - Spam Blocked",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code - Acquire Lock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Acquire Lock": {
+      "main": [
+        [
+          {
+            "node": "IF - Lock Acquired",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Lock Acquired": {
+      "main": [
+        [
+          {
+            "node": "Respond - Lock Busy",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "IF - Validation Error",
             "type": "main",
             "index": 0
           }
         ]
       ]
+    },
+    "Respond - Lock Busy": {
+      "main": []
+    },
+    "Respond - Spam Blocked": {
+      "main": []
     },
     "IF - Validation Error": {
       "main": [

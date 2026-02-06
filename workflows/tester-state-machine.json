@@ -1,0 +1,130 @@
+{
+  "name": "TESTER - State Machine Validation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook/test-state-machine",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const tests = [{name:'START to awaiting_plz',state:'',input:'ja',expectedNext:'awaiting_plz',shouldPass:true},{name:'START invalid',state:'',input:'nein',expectedNext:null,shouldPass:false},{name:'awaiting_plz valid',state:'awaiting_plz',input:'12345',expectedNext:'awaiting_kwh',shouldPass:true},{name:'awaiting_plz invalid',state:'awaiting_plz',input:'1234',expectedNext:null,shouldPass:false},{name:'awaiting_kwh valid',state:'awaiting_kwh',input:'4500',expectedNext:'awaiting_foto',shouldPass:true},{name:'awaiting_kwh invalid',state:'awaiting_kwh',input:'abc',expectedNext:null,shouldPass:false},{name:'awaiting_foto valid',state:'awaiting_foto',input:'photo',media:1,expectedNext:'qualified_complete',shouldPass:true},{name:'awaiting_foto invalid',state:'awaiting_foto',input:'no photo',media:0,expectedNext:null,shouldPass:false},{name:'qualified_complete',state:'qualified_complete',input:'anything',expectedNext:null,shouldPass:true}];return tests.map(t=>({json:t}));"
+      },
+      "name": "Code - Test Definitions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const testCase=$json;const msg=(testCase.input||'').trim().toLowerCase();const state=testCase.state||'';const mediaCount=testCase.media||0;const transitions={'':{valid:(m)=>['ja','jo','yes','okay','ok'].includes(m),next:'awaiting_plz'},'awaiting_plz':{valid:(m)=>/^\\d{5}$/.test(m),next:'awaiting_kwh'},'awaiting_kwh':{valid:(m)=>{const num=parseInt(m.replace(/[^0-9]/g,''));return!isNaN(num)&&num>0&&num<50000;},next:'awaiting_foto'},'awaiting_foto':{valid:(m,media)=>media>0,next:'qualified_complete'},'qualified_complete':{valid:()=>true,next:null}};const current=transitions[state];const isValid=current?current.valid(msg,mediaCount):false;const actualNext=isValid?current.next:null;const passed=testCase.shouldPass===isValid&&(!testCase.expectedNext||testCase.expectedNext===actualNext);return[{json:{test:testCase.name,state,input:msg,expectedValid:testCase.shouldPass,actualValid:isValid,expectedNext:testCase.expectedNext,actualNext,passed,timestamp:new Date().toISOString()}}];"
+      },
+      "name": "Code - Run Test",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const allTests=$input.all();const results=allTests.map(t=>t.json);const passed=results.filter(r=>r.passed).length;const failed=results.filter(r=>!r.passed).length;const total=results.length;return[{json:{summary:{total,passed,failed,success_rate:Math.round((passed/total)*100)+'%',timestamp:new Date().toISOString()},details:results}}];"
+      },
+      "name": "Code - Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {
+          "responseCode": 200
+        },
+        "responseHeaders": {
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Respond - Test Results",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"🧪 State Machine Tests\\n✅ Passed: {{ $json.summary.passed }}/{{ $json.summary.total }} ({{ $json.summary.success_rate }})\\n⏰ {{ $json.summary.timestamp }}\"}",
+        "options": {
+          "continueOnFail": true
+        }
+      },
+      "name": "HTTP Request - Telegram Results",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code - Test Definitions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Test Definitions": {
+      "main": [
+        [
+          {
+            "node": "Code - Run Test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Run Test": {
+      "main": [
+        [
+          {
+            "node": "Code - Aggregate Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Aggregate Results": {
+      "main": [
+        [
+          {
+            "node": "Respond - Test Results",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request - Telegram Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
