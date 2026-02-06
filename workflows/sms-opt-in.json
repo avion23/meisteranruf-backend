@@ -71,7 +71,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// SPAM FILTER + SMS Parser\nconst inputData = $input.first()?.json || {};\nconst bodyData = inputData.body || {};\nconst body = bodyData.Body || '';\nconst phone = bodyData.From || '';\nconst messageSid = bodyData.MessageSid || '';\nconst normalizedResponse = body.trim().toLowerCase();\n\n// Validate SMS body is not empty\nif (!body || body.trim().length === 0) {\n  return [{ json: { error: 'Empty SMS body', validationError: true } }];\n}\n\n// Phone normalization (international support)\nlet p = phone.replace(/[^0-9+]/g, '');\nif (p.startsWith('+')) {\n  // Keep international format\n} else if (p.startsWith('00')) {\n  p = '+' + p.substring(2);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (!p.startsWith('+') && p.length > 0) {\n  p = '+49' + p;\n}\n\n// SPAM FILTER CHECK\nconst blacklistedNumbers = ($env.BLACKLISTED_NUMBERS || '').split(',').map(n => n.trim()).filter(n => n);\nconst isBlacklisted = blacklistedNumbers.includes(p);\n\n// Rate limiting: Max 10 SMS per hour per number\nconst staticData = $getWorkflowStaticData('global');\nconst now = Date.now();\nconst oneHour = 60 * 60 * 1000;\nconst maxSmsPerHour = 10;\n\nif (!staticData.smsRateLimit) {\n  staticData.smsRateLimit = {};\n}\nif (!staticData.smsRateLimit[p]) {\n  staticData.smsRateLimit[p] = [];\n}\n\n// Clean old entries\nstaticData.smsRateLimit[p] = staticData.smsRateLimit[p].filter(ts => now - ts < oneHour);\n\n// Check rate limit\nconst isRateLimited = staticData.smsRateLimit[p].length >= maxSmsPerHour;\n\nif (!isRateLimited && !isBlacklisted) {\n  // Track this SMS for rate limiting\n  staticData.smsRateLimit[p].push(now);\n}\n\n// STOP keyword detection (DSGVO Opt-out)\nconst stopWords = ['stop', 'abmelden', 'abbestellen', 'ende', 'stopp', 'unsubscribe'];\nconst isStopRequest = stopWords.some(word => normalizedResponse.includes(word));\n\nif (isStopRequest) {\n  return [{ json: { phone: p, response: body, action: 'unsubscribe', isStopRequest: true, messageSid, isBlacklisted, isRateLimited } }];\n}\n\n// Affirmative response detection\nconst affirmativePatterns = ['ja', 'yes', 'ok', 'okay', 'jaa', 'klar', 'gerne', 'ja bitte'];\nconst isValidResponse = affirmativePatterns.some(pattern => normalizedResponse.includes(pattern));\n\n// Extract media fields for 3-question flow\nconst numMedia = parseInt(bodyData.NumMedia || '0');\nconst mediaUrl0 = bodyData.MediaUrl0 || null;\n\n// Check 3-question feature flag\nconst use3Question = true;  // DSGVO: 3-Question mandatory\n\n// Generate processing timestamp for race condition protection\nconst processingTimestamp = new Date().toISOString();\n\n// DSGVO: Track opt-in timestamp\nconst optInTimestamp = isValidResponse ? processingTimestamp : null;\n\nreturn [{ json: { \n  phone: p, \n  response: body, \n  isValidResponse, \n  action: isValidResponse ? 'opt-in' : 'unknown',\n  numMedia,\n  mediaUrl0,\n  use3Question,\n  messageSid,\n  processingTimestamp,\n  optInTimestamp,\n  isBlacklisted,\n  isRateLimited\n} }];"
+        "jsCode": "// SPAM FILTER + SMS Parser + MessageSid Deduplication\nconst inputData = $input.first()?.json || {};\nconst bodyData = inputData.body || {};\nconst body = bodyData.Body || '';\nconst phone = bodyData.From || '';\nconst messageSid = bodyData.MessageSid || '';\nconst normalizedResponse = body.trim().toLowerCase();\n\n// MessageSid Deduplication - Prevents duplicate webhook processing\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.processedMessageSids) {\n  staticData.processedMessageSids = {};\n}\n\n// Check if this MessageSid was already processed (5 min window)\nconst now = Date.now();\nconst fiveMinutes = 5 * 60 * 1000;\nif (staticData.processedMessageSids[messageSid]) {\n  const age = now - staticData.processedMessageSids[messageSid];\n  if (age < fiveMinutes) {\n    return [{ json: { error: 'Duplicate MessageSid', skip: true, messageSid, age } }];\n  }\n}\n\n// Track this MessageSid\nstaticData.processedMessageSids[messageSid] = now;\n\n// Cleanup old entries (keep last 100)\nconst sids = Object.keys(staticData.processedMessageSids);\nif (sids.length > 100) {\n  const oldest = sids.sort((a, b) => staticData.processedMessageSids[a] - staticData.processedMessageSids[b])[0];\n  delete staticData.processedMessageSids[oldest];\n}\n\n// Validate SMS body is not empty\nif (!body || body.trim().length === 0) {\n  return [{ json: { error: 'Empty SMS body', validationError: true } }];\n}\n\n// Phone normalization (international support)\nlet p = phone.replace(/[^0-9+]/g, '');\nif (p.startsWith('+')) {\n  // Keep international format\n} else if (p.startsWith('00')) {\n  p = '+' + p.substring(2);\n} else if (p.startsWith('0') && p.length >= 10 && p.length <= 13) {\n  p = '+49' + p.substring(1);\n} else if (!p.startsWith('+') && p.length > 0) {\n  p = '+49' + p;\n}\n\n// SPAM FILTER CHECK\nconst blacklistedNumbers = ($env.BLACKLISTED_NUMBERS || '').split(',').map(n => n.trim()).filter(n => n);\nconst isBlacklisted = blacklistedNumbers.includes(p);\n\n// Rate limiting: Max 10 SMS per hour per number\nconst staticData = $getWorkflowStaticData('global');\nconst now = Date.now();\nconst oneHour = 60 * 60 * 1000;\nconst maxSmsPerHour = 10;\n\nif (!staticData.smsRateLimit) {\n  staticData.smsRateLimit = {};\n}\nif (!staticData.smsRateLimit[p]) {\n  staticData.smsRateLimit[p] = [];\n}\n\n// Clean old entries\nstaticData.smsRateLimit[p] = staticData.smsRateLimit[p].filter(ts => now - ts < oneHour);\n\n// Check rate limit\nconst isRateLimited = staticData.smsRateLimit[p].length >= maxSmsPerHour;\n\nif (!isRateLimited && !isBlacklisted) {\n  // Track this SMS for rate limiting\n  staticData.smsRateLimit[p].push(now);\n}\n\n// STOP keyword detection (DSGVO Opt-out)\nconst stopWords = ['stop', 'abmelden', 'abbestellen', 'ende', 'stopp', 'unsubscribe'];\nconst isStopRequest = stopWords.some(word => normalizedResponse.includes(word));\n\nif (isStopRequest) {\n  return [{ json: { phone: p, response: body, action: 'unsubscribe', isStopRequest: true, messageSid, isBlacklisted, isRateLimited } }];\n}\n\n// Affirmative response detection\nconst affirmativePatterns = ['ja', 'yes', 'ok', 'okay', 'jaa', 'klar', 'gerne', 'ja bitte'];\nconst isValidResponse = affirmativePatterns.some(pattern => normalizedResponse.includes(pattern));\n\n// Extract media fields for 3-question flow\nconst numMedia = parseInt(bodyData.NumMedia || '0');\nconst mediaUrl0 = bodyData.MediaUrl0 || null;\n\n// Check 3-question feature flag\nconst use3Question = true;  // DSGVO: 3-Question mandatory\n\n// Generate processing timestamp for race condition protection\nconst processingTimestamp = new Date().toISOString();\n\n// DSGVO: Track opt-in timestamp\nconst optInTimestamp = isValidResponse ? processingTimestamp : null;\n\nreturn [{ json: { \n  phone: p, \n  response: body, \n  isValidResponse, \n  action: isValidResponse ? 'opt-in' : 'unknown',\n  numMedia,\n  mediaUrl0,\n  use3Question,\n  messageSid,\n  processingTimestamp,\n  optInTimestamp,\n  isBlacklisted,\n  isRateLimited\n} }];"
       },
       "name": "Code - Spam Filter + Parse SMS",
       "type": "n8n-nodes-base.code",
@@ -124,7 +124,7 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "Service nicht verfügbar.",
+        "responseBody": "Service nicht verf\u00fcgbar.",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -254,7 +254,7 @@
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Google Sheets Opt-Out\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Google Sheets Opt-Out\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {
           "continueOnFail": true
         }
@@ -400,7 +400,7 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "Vielen Dank für Ihre Rückmeldung.",
+        "responseBody": "Vielen Dank f\u00fcr Ihre R\u00fcckmeldung.",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -421,7 +421,7 @@
         "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"❌ Workflow Error: Google Sheets Update Opt-In\\n\\nDetails: {{ $json.error || $json.message }}\"}",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"\u274c Workflow Error: Google Sheets Update Opt-In\\n\\nDetails: {{ $json.error || $json.message }}\"}",
         "options": {
           "continueOnFail": true
         }
@@ -489,7 +489,7 @@
         "columns": {
           "mappingMode": "defineBelow",
           "value": {
-            "OptIn_Status": "UNSUBSCRIBED",
+            "OptIn_Status": "FALSE",
             "OptOut_Date": "={{ $now.toISO() }}",
             "last_message_sid": "={{ $json.messageSid }}",
             "last_processed_at": "={{ $json.processingTimestamp }}"
@@ -545,7 +545,7 @@
     {
       "parameters": {
         "respondWith": "text",
-        "responseBody": "Abmeldung bestätigt",
+        "responseBody": "Abmeldung best\u00e4tigt",
         "responseHeaders": {
           "headerParameters": {
             "parameters": [
@@ -594,7 +594,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Compact State Machine Validation\nconst parseSmsResult = $('Code - Spam Filter + Parse SMS').first()?.json || {};\nconst msg = (parseSmsResult.response || '').trim().toLowerCase();\nconst state = $json.conversationState || '';\nconst mediaCount = parseInt(parseSmsResult.numMedia || 0);\n\nconst transitions = {\n    '': {\n        valid: (m) => ['ja', 'jo', 'yes', 'okay', 'ok'].includes(m),\n        next: 'awaiting_plz',\n        response: \"Danke! Bitte sende mir deine Postleitzahl (5 Zahlen).\"\n    },\n    'awaiting_plz': {\n        valid: (m) => /^\\d{5}$/.test(m),\n        next: 'awaiting_kwh',\n        response: \"Perfekt! Wie hoch ist dein Jahresverbrauch in kWh?\"\n    },\n    'awaiting_kwh': {\n        valid: (m) => {\n            const num = parseInt(m.replace(/[^0-9]/g, ''));\n            return !isNaN(num) && num > 0 && num < 50000;\n        },\n        next: 'awaiting_foto',\n        response: \"Danke! Bitte sende mir ein Foto vom Zählerschrank.\"\n    },\n    'awaiting_foto': {\n        valid: (m, media) => media > 0,\n        next: 'qualified_complete',\n        response: \"Super! Ich schicke dir gleich alle Infos per WhatsApp.\"\n    }\n};\n\nconst current = transitions[state];\n\nif (current && current.valid(msg, mediaCount)) {\n    return [{\n        json: {\n            valid: true,\n            next_state: current.next,\n            response: current.response,\n            extracted_value: state === 'awaiting_kwh' ? parseInt(msg.replace(/[^0-9]/g, '')) : msg,\n            phone: parseSmsResult.phone\n        }\n    }];\n} else {\n    const errorMsgs = {\n        '': \"Bitte antworte mit JA für WhatsApp-Support.\",\n        'awaiting_plz': \"Das war keine gültige PLZ. Bitte 5 Zahlen.\",\n        'awaiting_kwh': \"Bitte gib nur den Verbrauch als Zahl an.\",\n        'awaiting_foto': \"Bitte sende ein Foto vom Zählerschrank.\"\n    };\n    return [{\n        json: {\n            valid: false,\n            retry_msg: errorMsgs[state] || \"Bitte versuche es nochmal.\",\n            current_state: state,\n            phone: parseSmsResult.phone\n        }\n    }];\n}"
+        "jsCode": "// Compact State Machine Validation\nconst parseSmsResult = $('Code - Spam Filter + Parse SMS').first()?.json || {};\nconst msg = (parseSmsResult.response || '').trim().toLowerCase();\nconst state = $json.conversationState || '';\nconst mediaCount = parseInt(parseSmsResult.numMedia || 0);\n\nconst transitions = {\n    '': {\n        valid: (m) => ['ja', 'jo', 'yes', 'okay', 'ok'].includes(m),\n        next: 'awaiting_plz',\n        response: \"Danke! Bitte sende mir deine Postleitzahl (5 Zahlen).\"\n    },\n    'awaiting_plz': {\n        valid: (m) => /^\\d{5}$/.test(m),\n        next: 'awaiting_kwh',\n        response: \"Perfekt! Wie hoch ist dein Jahresverbrauch in kWh?\"\n    },\n    'awaiting_kwh': {\n        valid: (m) => {\n            const num = parseInt(m.replace(/[^0-9]/g, ''));\n            return !isNaN(num) && num > 0 && num < 50000;\n        },\n        next: 'awaiting_foto',\n        response: \"Danke! Bitte sende mir ein Foto vom Z\u00e4hlerschrank.\"\n    },\n    'awaiting_foto': {\n        valid: (m) => ['ja', 'jo', 'yes', 'okay', 'ok', 'weiter', 'go'].some(word => m.includes(word)),\n        next: 'qualified_complete',\n        response: \"Perfekt! Klicke hier f\u00fcr WhatsApp: https://wa.me/\" + process.env.TWILIO_WHATSAPP_NUMBER + \"?text=Hallo%20ich%20habe%20meine%20Daten%20bereits%20per%20SMS%20gesendet\"\n    }\n};\n\nconst current = transitions[state];\n\nif (current && current.valid(msg, mediaCount)) {\n    return [{\n        json: {\n            valid: true,\n            next_state: current.next,\n            response: current.response,\n            extracted_value: state === 'awaiting_kwh' ? parseInt(msg.replace(/[^0-9]/g, '')) : msg,\n            phone: parseSmsResult.phone\n        }\n    }];\n} else {\n    const errorMsgs = {\n        '': \"Bitte antworte mit JA f\u00fcr WhatsApp-Support.\",\n        'awaiting_plz': \"Das war keine g\u00fcltige PLZ. Bitte 5 Zahlen.\",\n        'awaiting_kwh': \"Bitte gib nur den Verbrauch als Zahl an.\",\n        'awaiting_foto': \"Klicke hier f\u00fcr direkten WhatsApp-Chat: https://wa.me/\" + process.env.TWILIO_WHATSAPP_NUMBER + \"?text=Hallo%20ich%20habe%20meine%20Daten%20bereits%20per%20SMS%20gesendet\"\n    };\n    return [{\n        json: {\n            valid: false,\n            retry_msg: errorMsgs[state] || \"Bitte versuche es nochmal.\",\n            current_state: state,\n            phone: parseSmsResult.phone\n        }\n    }];\n}"
       },
       "name": "Code - Compact State Validator",
       "type": "n8n-nodes-base.code",
@@ -986,7 +986,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "message": "Alles klar! Bitte senden Sie uns ein Foto von Ihrem Stromzähler.",
+        "message": "Fast geschafft! Klicken Sie hier f\u00fcr direkten WhatsApp-Chat: https://wa.me/{{ $env.TWILIO_WHATSAPP_NUMBER }}?text=Hallo%20ich%20habe%20meine%20Daten%20bereits%20per%20SMS%20gesendet",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
@@ -1007,7 +1007,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "message": "Bitte geben Sie eine gültige 5-stellige Postleitzahl ein.",
+        "message": "Bitte geben Sie eine g\u00fcltige 5-stellige Postleitzahl ein.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
@@ -1028,7 +1028,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "message": "Bitte geben Sie eine gültige kWh-Zahl größer als 0 ein.",
+        "message": "Bitte geben Sie eine g\u00fcltige kWh-Zahl gr\u00f6\u00dfer als 0 ein.",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
@@ -1049,7 +1049,7 @@
         "operation": "send",
         "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
         "to": "={{ $json.phone }}",
-        "message": "Bitte senden Sie uns ein Foto Ihres Stromzählers.",
+        "message": "Klicken Sie hier f\u00fcr direkten WhatsApp-Chat: https://wa.me/{{ $env.TWILIO_WHATSAPP_NUMBER }}?text=Hallo%20ich%20habe%20meine%20Daten%20bereits%20per%20SMS%20gesendet",
         "options": {
           "maxTries": 3,
           "waitBetweenTries": 2000
