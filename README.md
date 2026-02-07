@@ -17,29 +17,35 @@ KUNDE RUFT AN
       | (Parallel)                            | (Logik)
       v                                       v
 1. SPRACHANSAGE                      1. PRÜFE BLACKLIST
-   "Bin auf dem Dach!"               2. LOGGE ANRUF IN SHEETS
+   "Bin auf dem Dach!"               2. LOGGE ANRUF IN SHEETS (Debug)
       |                              3. SENDE OPT-IN SMS
       v                                       |
 KUNDE ANTWORTET AUF SMS ("JA") <--------------+
       |
       v
-[n8n STATE MACHINE]
+[n8n STATE MACHINE - SQLite]
       |
-      |-- Q1: PLZ? --------> [Sheets: awaiting_plz]
-      |-- Q2: kWh? --------> [Sheets: awaiting_kwh]
-      |-- Q3: Foto? -------> [Sheets: awaiting_foto]
+      |-- State: "awaiting_plz" (SQLite, <10ms)
+      |-- Q1: PLZ? --------> [SMS an Kunde]
+      |
+      |-- State: "qualified" (SQLite)
+      |-- WhatsApp Link ----> [SMS an Kunde]
       v
-[QUALIFIZIERTER LEAD] ----> [WhatsApp Link an Kunde]
-                      ----> [Telegram Alarm an Meister]
+[QUALIFIZIERTER LEAD] 
+      |
+      |---> [Google Sheets: Leads Tab] (für Sales)
+      |---> [Google Sheets: Debug_Log] (für Debugging)
+      |---> [Telegram Alarm an Meister]
 ```
 
-## Kern-Features (Minimal State)
+## Kern-Features (V2 - SQLite State)
 
 - **Zero-Maintenance:** Kein Postgres, kein Redis. n8n nutzt SQLite.
+- **SQLite State Machine:** State wird in n8n SQLite gehalten (<10ms Latenz, keine Race Conditions).
 - **Spam-Filter:** Blacklist + Rate-Limiting (max 10 SMS/Stunde) reduziert Kosten.
-- **File-Based Locking:** Verhindert Race Conditions bei gleichzeitigen Anrufen.
 - **DSGVO-Brücke:** SMS-zu-WhatsApp Opt-In Flow mit Zeitstempel (Proof of Consent).
-- **Auto-Qualifizierung:** Sammelt Postleitzahl, Verbrauch und Zählerfotos vor dem Rückruf.
+- **Abgekürzter Flow:** Nur 2 Fragen (Opt-In + PLZ) statt 4-5 für bessere Conversion.
+- **Debug Logging:** Alle Interaktionen werden in Google Sheets geloggt (für Troubleshooting).
 - **Speed-to-Lead:** Reaktion innerhalb von < 3 Sekunden.
 
 ## Setup & Deployment
@@ -50,7 +56,20 @@ KUNDE ANTWORTET AUF SMS ("JA") <--------------+
 - Docker & Docker Compose installiert
 - Domain zeigt auf Server-IP
 
-### 2. .env Konfiguration
+### 2. Google Sheets vorbereiten
+
+Erstelle 3 Tabs in deinem Spreadsheet:
+
+**Tab 1: Leads** (für Sales)
+| Phone | PLZ | OptIn_Timestamp | Qualified_Timestamp | Source | Status |
+
+**Tab 2: Debug_Log** (für Debugging)
+| Timestamp | Phone | Direction | Message | State | Action |
+
+**Tab 3: Call_Log** (für Analytics)
+| Timestamp | Phone | Status | SMS_Sent |
+
+### 3. .env Konfiguration
 
 Kopiere `.env.example` zu `.env` und fülle aus:
 
@@ -60,9 +79,12 @@ DOMAIN=deine-domain.de
 TWILIO_ACCOUNT_SID=ACxxxxx
 TWILIO_AUTH_TOKEN=xxxxx
 TWILIO_PHONE_NUMBER=+49xxxx
+TWILIO_WHATSAPP_NUMBER=49xxxx  # Ohne + für wa.me Links
 TELEGRAM_BOT_TOKEN=xxxxx
 TELEGRAM_CHAT_ID=xxxxx
 GOOGLE_SHEETS_SPREADSHEET_ID=xxxxx
+GOOGLE_SHEETS_LEADS_RANGE=Leads!A:F
+GOOGLE_SHEETS_DEBUG_RANGE=Debug_Log!A:F
 
 # Spam-Schutz
 BLACKLISTED_NUMBERS=+491711234567,+49301234567
@@ -82,12 +104,13 @@ cd backend
 
 ## Lokale Logik & Kompaktheit
 
-Die gesamte Chat-Logik befindet sich im Workflow `sms-opt-in.json`:
+Die gesamte Chat-Logik befindet sich im Workflow `sms-opt-in-v2.json`:
 
-- **Validation:** PLZ muss 5-stellig sein, kWh muss positive Zahl sein
+- **Validation:** PLZ muss 5-stellig sein
+- **State Machine:** SQLite-basiert (`$getWorkflowStaticData`) - schnell & race-condition-frei
 - **Deduplizierung:** Twilio `MessageSid` verhindert doppelte Webhooks
-- **File Locking:** `/tmp/n8n-locks/<phone>.lock` verhindert Race Conditions
 - **Rate Limiting:** Max 10 SMS pro Stunde pro Nummer
+- **Debug Logging:** Jede Interaktion wird in `Debug_Log` Tab geschrieben
 - **Timeout:** Nach 24h ohne Antwort wird der State automatisch auf `expired` gesetzt
 
 ## Hardware-Optimierung (1GB VPS)
@@ -105,9 +128,18 @@ NODE_OPTIONS: "--max-old-space-size=768"  # Heap-Limit
 
 ## Warum Google Sheets?
 
-Sheets dient als UI für den Handwerker. Er braucht keine App, er braucht nur seine Tabelle. Das System bleibt für uns zustandslos, die Daten liegen beim Kunden.
+Sheets dient als **Interface für den Handwerker** und **Debugging-Tool**:
 
-**Trade-off:** Sheets hat Latenz (~200-500ms), aber mit File-Locking + MessageSid-Deduplizierung ist das System robust genug für MVP.
+- **Leads Tab:** Nur finale, qualifizierte Leads (für Sales)
+- **Debug_Log Tab:** Alle SMS-Interaktionen (für Troubleshooting)
+- **Call_Log Tab:** Alle eingehenden Anrufe (für Analytics)
+
+**Architektur:**
+- **State:** In n8n SQLite (schnell, race-condition-frei)
+- **Debug:** In Google Sheets (übersichtlich, filterbar)
+- **Leads:** In Google Sheets (für Sales-Team)
+
+**Trade-off:** Sheets hat Latenz (~200-500ms), aber da nur finale Leads + Debug-Logs geschrieben werden, ist das System robust und schnell.
 
 ## DSGVO-Compliance
 

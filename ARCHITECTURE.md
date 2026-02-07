@@ -23,14 +23,14 @@
 
 ## 1. System Overview
 
-### High-Level Architecture
+### High-Level Architecture (V2 - SQLite State)
 
 ```mermaid
 graph TB
     subgraph External["Externe Dienste"]
         TW[Twilio API<br/>Voice + SMS + WhatsApp]
         TE[Telegram Bot API]
-        GS[Google Sheets<br/>CRM-Datenbank]
+        GS[Google Sheets<br/>CRM + Debug Logs]
     end
     
     subgraph VPS["1GB VPS (Hetzner CX11)"]
@@ -39,11 +39,14 @@ graph TB
         end
         
         subgraph App["Anwendungsschicht"]
-            N8[n8n v1.50.0<br/>Workflow-Engine<br/>SQLite DB]
+            N8[n8n v1.84.1<br/>Workflow-Engine]
+            subgraph State["State Management"]
+                SQLITE[(SQLite<br/>Conversation State<br/>Rate Limiting<br/>MessageSid Deduplication)]
+            end
         end
         
         subgraph Storage["Persistenter Speicher"]
-            VOL1[(n8n_data<br/>Workflows + DB)]
+            VOL1[(n8n_data<br/>Workflows + SQLite DB)]
             VOL2[(letsencrypt<br/>SSL-Zertifikate)]
         end
     end
@@ -56,7 +59,8 @@ graph TB
     C <-- "Sprache/SMS/WhatsApp" --> TW
     TW <-- "Webhooks" --> TR
     TR --> N8
-    N8 --> GS
+    N8 <-- "State Read/Write<br/>&lt;10ms" --> SQLITE
+    N8 -->|"Leads + Debug Logs<br/>~200-500ms"| GS
     N8 --> TE
     TE --> CR
     
@@ -68,6 +72,7 @@ graph TB
     style GS fill:#4f4,stroke:#333,stroke-width:2px
     style N8 fill:#ff9,stroke:#333,stroke-width:2px
     style TR fill:#f99,stroke:#333,stroke-width:2px
+    style SQLITE fill:#9cf,stroke:#333,stroke-width:2px
 ```
 
 ### Network & Container Topology
@@ -136,45 +141,85 @@ graph LR
 | **Telegram** | Sendet Echtzeit-Alarme an den Handwerker |
 | **Traefik** | Übernimmt SSL, Routing und Sicherheit |
 
-## 2. Lead Lifecycle State Machine
+## 2. Lead Lifecycle State Machine (V2 - SQLite)
 
 ```mermaid
 stateDiagram-v2
     [*] --> IncomingCall: Telefon klingelt
-    IncomingCall --> Logged: Anruf in Sheet protokolliert
+    IncomingCall --> Logged: Anruf in Sheets (Call_Log)
     Logged --> SMS_Sent: Opt-in SMS auslösen
-    SMS_Sent --> PendingOptIn: 24h Zeitfenster
+    SMS_Sent --> PendingOptIn: State in SQLite: "sms_sent"
     
-    PendingOptIn --> WhatsApp_Active: Kunde antwortet "JA"
+    PendingOptIn --> AwaitingPLZ: Kunde antwortet "JA"
     PendingOptIn --> Expired: Keine Antwort/Timeout
     
-    WhatsApp_Active --> ManualFollowUp: WhatsApp-Link gesendet
+    AwaitingPLZ --> Qualified: PLZ empfangen
+    AwaitingPLZ --> PendingOptIn: Ungültige PLZ
+    
+    Qualified --> WhatsApp_Active: WhatsApp-Link gesendet
     Expired --> ManualFollowUp: Handwerker benachrichtigt
     
+    WhatsApp_Active --> ManualFollowUp: Lead in Sheets (Leads Tab)
     ManualFollowUp --> [*]: Gespräch abgeschlossen
     
-    note right of PendingOptIn
-        Kunde hat 24h zum Antworten mit "JA"
-        Nach 24h: Abgelaufen-Status
+    note right of AwaitingPLZ
+        State: "awaiting_plz" in SQLite
+        Nur 1 Frage statt 3 (bessere Conversion)
     end note
     
-    note right of WhatsApp_Active
-        UWG-konformer Opt-in dokumentiert
-        WhatsApp-Kommunikation aktiviert
+    note right of Qualified
+        State: "qualified" in SQLite
+        PLZ + Opt-In Timestamp gespeichert
+        Lead wird in Google Sheets geschrieben
     end note
 ```
 
-### Lead States Explained
+### Lead States Explained (SQLite State Machine)
 
-| State | Description | Next Action |
-|-------|-------------|-------------|
-| **IncomingCall** | Customer is calling | System answers, logs call |
-| **Logged** | Call recorded in Google Sheets | SMS opt-in invite sent |
-| **SMS_Sent** | Opt-in SMS delivered | Waiting for customer reply |
-| **PendingOptIn** | 24-hour window active | Customer replies or expires |
-| **WhatsApp_Active** | Opt-in confirmed | Send WhatsApp link |
-| **Expired** | No response within 24h | Manual follow-up needed |
-| **ManualFollowUp** | Craftsman takes over | Conversation via WhatsApp |
+| State | SQLite State | Description | Next Action |
+|-------|--------------|-------------|-------------|
+| **IncomingCall** | - | Customer is calling | System answers, logs call to Call_Log |
+| **Logged** | - | Call recorded in Google Sheets | SMS opt-in invite sent |
+| **SMS_Sent** | `sms_sent` | Opt-in SMS delivered | Waiting for customer reply |
+| **PendingOptIn** | `new` / `sms_sent` | 24-hour window active | Customer replies with "JA" |
+| **AwaitingPLZ** | `awaiting_plz` | Opt-in confirmed, waiting for PLZ | Customer sends PLZ |
+| **Qualified** | `qualified` | PLZ received, lead complete | Send WhatsApp link, save to Leads tab |
+| **Expired** | `expired` | No response within 24h | Manual follow-up needed |
+| **ManualFollowUp** | - | Craftsman takes over | Conversation via WhatsApp |
+
+### State Storage Architecture
+
+```mermaid
+graph LR
+    subgraph n8n["n8n Workflow"]
+        WF[State Machine Code Node]
+    end
+    
+    subgraph SQLite["SQLite (n8n_internal)"]
+        STATIC[$getWorkflowStaticData]
+        CONV[conversations Object]
+        RATE[rateLimiter Object]
+        DEDUP[processedSids Object]
+    end
+    
+    subgraph Sheets["Google Sheets"]
+        LEADS[Leads Tab]
+        DEBUG[Debug_Log Tab]
+        CALLS[Call_Log Tab]
+    end
+    
+    WF --"Read/Write State"--> STATIC
+    STATIC --> CONV
+    STATIC --> RATE
+    STATIC --> DEDUP
+    
+    WF --"Write Final Leads"--> LEADS
+    WF --"Write Debug Info"--> DEBUG
+    WF --"Log Calls"--> CALLS
+    
+    style SQLite fill:#9cf,stroke:#333,stroke-width:2px
+    style Sheets fill:#4f4,stroke:#333,stroke-width:2px
+```
 
 ## 3. Data Flow: CRM Updates
 
@@ -472,23 +517,35 @@ https://wa.me/491711234567?text=Hi%2C%20I%20received%20your%20booking%20link
 
 ## 10. Data Model
 
-### Google Sheets Struktur
+### Google Sheets Struktur (V2)
 
-**Sheet 1: Customers (Lead_DB)**
+**Sheet 1: Leads** (für Sales - Nur finale Leads)
 | Column | Description | Example |
 |--------|-------------|---------|
 | Phone | Primary key (E.164 format) | +491711234567 |
-| Name | Kundenname | Hans Müller |
-| OptIn_Status | Boolean (TRUE/FALSE) | TRUE |
-| Last_Contact | Datum der letzten Interaktion | 2026-02-01 |
+| PLZ | Postleitzahl (5-stellig) | 10115 |
+| OptIn_Timestamp | DSGVO Opt-In Zeitpunkt | 2026-02-01T14:30:00Z |
+| Qualified_Timestamp | Lead qualifiziert | 2026-02-01T14:32:00Z |
+| Source | Ursprung des Leads | sms_opt_in |
+| Status | Verarbeitungsstatus | NEW / CONTACTED |
 
-**Sheet 2: Call_Log**
+**Sheet 2: Debug_Log** (für Troubleshooting - Alle Interaktionen)
+| Column | Description | Example |
+|--------|-------------|---------|
+| Timestamp | Zeitpunkt der Interaktion | 2026-02-01 14:30:00 |
+| Phone | Telefonnummer | +491711234567 |
+| Direction | Richtung (inbound/outbound) | inbound |
+| Message | Inhalt der Nachricht | "JA" / "Danke! Bitte PLZ..." |
+| State | Aktueller State | awaiting_plz / qualified |
+| Action | Ausgeführte Aktion | opt_in_received / plz_received |
+
+**Sheet 3: Call_Log** (für Analytics - Alle Anrufe)
 | Column | Description | Example |
 |--------|-------------|---------|
 | Timestamp | Zeitpunkt des Anrufs | 2026-02-01 14:30:00 |
 | Phone | Anrufernummer | +491711234567 |
-| Status | Ergebnis des Anrufs | Missed / Opted-In |
-| Action_Taken | Systemaktion | Sent SMS invite |
+| Status | Ergebnis des Anrufs | missed / handled |
+| SMS_Sent | Opt-In SMS verschickt | true / false |
 
 ## 11. Technical Details
 
@@ -579,10 +636,54 @@ Alle eingehenden Nummern werden in das E.164 Format konvertiert:
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| Orchestration | n8n v1.50.0 | Workflow-Automatisierung |
+| Orchestration | n8n v1.84.1 | Workflow-Automatisierung |
 | Communication | Twilio API | Voice, SMS, WhatsApp |
 | Proxy | Traefik v2.11 | SSL, Routing, Rate Limiting |
-| Database | SQLite (WAL) | Interner n8n-Status |
-| CRM | Google Sheets API | Kundendaten, Logs |
+| State Management | SQLite (n8n internal) | Conversation State, Rate Limiting |
+| CRM | Google Sheets API | Leads, Debug Logs, Call Logs |
 | Notifications | Telegram Bot | Echtzeit-Alarme |
 | Deployment | Docker Compose | Container-Orchestrierung |
+
+## 14. Performance Characteristics
+
+### Latenz-Vergleich (V1 vs V2)
+
+| Operation | V1 (Sheets State) | V2 (SQLite State) | Verbesserung |
+|-----------|-------------------|-------------------|--------------|
+| State Read | 200-500ms | <1ms | 500x schneller |
+| State Write | 500-2000ms | <10ms | 200x schneller |
+| Race Conditions | Möglich (File-Locking) | Unmöglich | Eliminiert |
+| Sheets API Calls | 4-6 pro Lead | 2-3 pro Lead | 50% weniger |
+
+### State Storage Details
+
+**SQLite State (n8n_internal):**
+```javascript
+// In Workflow Code-Node
+const staticData = $getWorkflowStaticData('global');
+
+// Struktur
+{
+  "conversations": {
+    "+491711234567": {
+      "state": "qualified",
+      "createdAt": "2026-02-01T14:30:00Z",
+      "optInAt": "2026-02-01T14:31:00Z",
+      "plz": "10115",
+      "qualifiedAt": "2026-02-01T14:32:00Z"
+    }
+  },
+  "rateLimiter": {
+    "+491711234567": [1706174400000, 1706174460000]
+  },
+  "processedSids": {
+    "SM1234567890": 1706174400000
+  }
+}
+```
+
+**Vorteile:**
+- Keine API-Latenz
+- Atomare Operationen (keine Race Conditions)
+- Persistiert in n8n SQLite DB
+- Automatische Cleanup (alte Einträge)

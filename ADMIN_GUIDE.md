@@ -229,11 +229,12 @@ ssh ralf_waldukat@instance1.duckdns.org "df -h"
 3. Add credential manually
 4. Save through UI (this ensures proper encryption)
 
-### Current Status
-- **Active Workflows:** SMS Opt-In, Roof-Mode, Timeout Handler
+### Current Status (V2)
+- **Active Workflows:** SMS Opt-In V2, Roof-Mode, Timeout Handler
+- **State Management:** SQLite (n8n internal) - Fast, no race conditions
 - **Webhooks:** sms-response, incoming-call
 - **Database:** SQLite with WAL mode
-- **Issue:** Workflows fail due to API-created credentials
+- **Google Sheets:** 3 Tabs (Leads, Debug_Log, Call_Log)
 
 ### Next Steps
 1. Create credentials manually through n8n UI

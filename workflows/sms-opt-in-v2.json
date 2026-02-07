@@ -1,0 +1,379 @@
+{
+  "name": "SMS Opt-In V2 - SQLite State + Debug Logging",
+  "nodes": [
+    {
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook/sms-response",
+        "responseMode": "responseNode"
+      }
+    },
+    {
+      "name": "Code - Validate & Parse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\nconst authToken = $env.TWILIO_AUTH_TOKEN;\nconst inputData = $input.first()?.json || {};\nconst headers = inputData.headers || {};\nconst signature = headers['x-twilio-signature'] || headers['X-Twilio-Signature'];\nconst body = inputData.body || {};\n\n// Validate Twilio signature\nconst sortedKeys = Object.keys(body).sort();\nconst payload = sortedKeys.map(key => key + body[key]).join('');\nconst webhookUrl = `https://${$env.DOMAIN}/webhook/sms-response`;\nconst expected = crypto.createHmac('sha1', authToken).update(webhookUrl + payload).digest('base64');\n\nif (!crypto.timingSafeEqual(Buffer.from(signature || ''), Buffer.from(expected))) {\n  return [{ json: { error: 'Invalid signature', statusCode: 403 } }];\n}\n\n// Parse SMS data\nconst phone = (body.From || '').replace(/[^0-9+]/g, '');\nconst messageSid = body.MessageSid || '';\nconst response = (body.Body || '').trim();\nconst normalizedResponse = response.toLowerCase();\n\n// Spam filter\nconst blacklisted = ($env.BLACKLISTED_NUMBERS || '').split(',').map(n => n.trim()).filter(n => n);\nif (blacklisted.some(b => phone.includes(b))) {\n  return [{ json: { error: 'Blacklisted', statusCode: 403 } }];\n}\n\n// Rate limiting via static data\nconst staticData = $getWorkflowStaticData('global');\nstaticData.rateLimiter = staticData.rateLimiter || {};\nconst now = Date.now();\nconst hourAgo = now - 3600000;\n\nif (staticData.rateLimiter[phone]) {\n  const recent = staticData.rateLimiter[phone].filter(t => t > hourAgo);\n  if (recent.length > 10) {\n    return [{ json: { error: 'Rate limited', statusCode: 429 } }];\n  }\n  staticData.rateLimiter[phone] = recent;\n} else {\n  staticData.rateLimiter[phone] = [];\n}\nstaticData.rateLimiter[phone].push(now);\n\n// MessageSid deduplication\nstaticData.processedSids = staticData.processedSids || {};\nif (staticData.processedSids[messageSid] && (now - staticData.processedSids[messageSid]) < 300000) {\n  return [{ json: { error: 'Duplicate', statusCode: 200, skip: true } }];\n}\nstaticData.processedSids[messageSid] = now;\n\n// Cleanup old entries\nif (Object.keys(staticData.processedSids).length > 200) {\n  Object.keys(staticData.processedSids).forEach(sid => {\n    if (now - staticData.processedSids[sid] > 600000) delete staticData.processedSids[sid];\n  });\n}\n\nreturn [{\n  json: {\n    phone,\n    response,\n    normalizedResponse,\n    messageSid,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      }
+    },
+    {
+      "name": "IF - Valid Request",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "id": "condition-1",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "name": "Respond - Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Service nicht verfügbar.",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "name": "Code - State Machine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "parameters": {
+        "jsCode": "const staticData = $getWorkflowStaticData('global');\nstaticData.conversations = staticData.conversations || {};\n\nconst { phone, response, normalizedResponse, messageSid, timestamp } = $input.first().json;\nconst conversation = staticData.conversations[phone] || { state: 'new', createdAt: timestamp };\n\n// STOP handler\nif (['stop', 'abbruch', 'ende', 'unsubscribe'].includes(normalizedResponse)) {\n  conversation.state = 'opted_out';\n  conversation.optOutAt = timestamp;\n  staticData.conversations[phone] = conversation;\n  \n  return [{\n    json: {\n      phone,\n      action: 'opt_out',\n      conversation,\n      logEntry: {\n        timestamp,\n        phone,\n        direction: 'inbound',\n        message: response,\n        state: 'opted_out',\n        action: 'opt_out'\n      }\n    }\n  }];\n}\n\n// State machine logic\nlet action = 'unknown';\nlet nextState = conversation.state;\nlet replyMessage = '';\nlet isComplete = false;\nlet leadData = null;\nlet logEntry = null;\n\nswitch (conversation.state) {\n  case 'new':\n  case 'sms_sent':\n    // Waiting for Opt-In (JA)\n    if (['ja', 'jo', 'yes', 'okay', 'ok', 'gerne', 'whatsApp'].some(w => normalizedResponse.includes(w))) {\n      action = 'opt_in_received';\n      nextState = 'awaiting_plz';\n      replyMessage = 'Danke! Bitte sende mir deine Postleitzahl (5 Zahlen).';\n      conversation.optInAt = timestamp;\n      conversation.optInMessage = response;\n    } else {\n      action = 'invalid_opt_in';\n      replyMessage = 'Bitte antworte mit JA, wenn du per WhatsApp kontaktiert werden möchtest.';\n    }\n    break;\n    \n  case 'awaiting_plz':\n    // Waiting for PLZ\n    const plzMatch = response.match(/\\b(\\d{5})\\b/);\n    if (plzMatch) {\n      const plz = plzMatch[1];\n      action = 'plz_received';\n      nextState = 'qualified';\n      conversation.plz = plz;\n      conversation.qualifiedAt = timestamp;\n      \n      // Build WhatsApp link\n      const whatsappNumber = $env.TWILIO_WHATSAPP_NUMBER;\n      const whatsappMessage = encodeURIComponent(`Hallo! Ich habe PLZ ${plz} eingegeben und möchte einen Termin vereinbaren.`);\n      const waLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;\n      \n      replyMessage = `Perfekt! Klicke hier für direkten WhatsApp-Chat: ${waLink}`;\n      isComplete = true;\n      leadData = {\n        phone,\n        plz,\n        optInAt: conversation.optInAt,\n        qualifiedAt: timestamp,\n        source: 'sms_opt_in'\n      };\n    } else {\n      action = 'invalid_plz';\n      replyMessage = 'Das war keine gültige PLZ. Bitte sende mir 5 Zahlen (z.B. 10115).';\n    }\n    break;\n    \n  case 'qualified':\n    // Already qualified, remind of WhatsApp\n    action = 'already_qualified';\n    const waNumber = $env.TWILIO_WHATSAPP_NUMBER;\n    const waMsg = encodeURIComponent(`Hallo! Ich habe PLZ ${conversation.plz} eingegeben und möchte einen Termin vereinbaren.`);\n    const waLink = `https://wa.me/${waNumber}?text=${waMsg}`;\n    replyMessage = `Du hast bereits alle Daten gesendet. Hier nochmal der WhatsApp-Link: ${waLink}`;\n    break;\n    \n  default:\n    action = 'unknown_state';\n    replyMessage = 'Vielen Dank für deine Nachricht. Wir melden uns bei dir.';\n}\n\n// Create log entry for debugging\nlogEntry = {\n  timestamp,\n  phone,\n  direction: 'inbound',\n  message: response,\n  state: nextState,\n  action: action\n};\n\n// Update conversation state\nconversation.state = nextState;\nconversation.lastMessageAt = timestamp;\nconversation.lastResponse = response;\nstaticData.conversations[phone] = conversation;\n\nreturn [{\n  json: {\n    phone,\n    action,\n    replyMessage,\n    isComplete,\n    leadData,\n    conversation,\n    logEntry\n  }\n}];"
+      }
+    },
+    {
+      "name": "Google Sheets - Log SMS Debug",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "parameters": {
+        "operation": "append",
+        "sheetId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "=${GOOGLE_SHEETS_SPREADSHEET_ID}"
+        },
+        "range": "={{ $env.GOOGLE_SHEETS_DEBUG_RANGE || 'Debug_Log!A:F' }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.logEntry.timestamp }}",
+            "Phone": "={{ $json.logEntry.phone }}",
+            "Direction": "={{ $json.logEntry.direction }}",
+            "Message": "={{ $json.logEntry.message }}",
+            "State": "={{ $json.logEntry.state }}",
+            "Action": "={{ $json.logEntry.action }}"
+          }
+        },
+        "options": {
+          "continueOnFail": true
+        }
+      },
+      "credentials": {
+        "googleApi": {
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "name": "Switch - Action Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "name": "Opt-Out",
+              "conditions": {
+                "conditions": [
+                  {
+                    "id": "condition-optout",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "opt_out",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "name": "Lead Complete",
+              "conditions": {
+                "conditions": [
+                  {
+                    "id": "condition-complete",
+                    "leftValue": "={{ $json.isComplete }}",
+                    "rightValue": "true",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "isTrue"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "name": "Normal Reply",
+              "conditions": {
+                "conditions": [
+                  {
+                    "id": "condition-default",
+                    "leftValue": "={{ $json.action }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "isNotEmpty"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Twilio - Send Opt-Out Confirm",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.phone }}",
+        "message": "Du wurdest erfolgreich abgemeldet."
+      },
+      "credentials": {
+        "twilioApi": {
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "name": "Google Sheets - Save Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "parameters": {
+        "operation": "append",
+        "sheetId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "=${GOOGLE_SHEETS_SPREADSHEET_ID}"
+        },
+        "range": "={{ $env.GOOGLE_SHEETS_LEADS_RANGE || 'Leads!A:F' }}",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Phone": "={{ $json.leadData.phone }}",
+            "PLZ": "={{ $json.leadData.plz }}",
+            "OptIn_Timestamp": "={{ $json.leadData.optInAt }}",
+            "Qualified_Timestamp": "={{ $json.leadData.qualifiedAt }}",
+            "Source": "={{ $json.leadData.source }}",
+            "Status": "NEW"
+          }
+        }
+      },
+      "credentials": {
+        "googleApi": {
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "name": "Telegram - Lead Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "parameters": {
+        "url": "={{ $env.TELEGRAM_BOT_API_URL }}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"chat_id\": \"{{ $env.TELEGRAM_CHAT_ID }}\", \"text\": \"🎯 NEUER LEAD!\\n📱 {{ $json.leadData.phone }}\\n📍 PLZ: {{ $json.leadData.plz }}\\n⏰ Opt-In: {{ $json.leadData.optInAt }}\", \"parse_mode\": \"HTML\"}"
+      }
+    },
+    {
+      "name": "Twilio - Send Reply",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.phone }}",
+        "message": "={{ $json.replyMessage }}"
+      },
+      "credentials": {
+        "twilioApi": {
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "name": "Respond - Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code - Validate & Parse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Validate & Parse": {
+      "main": [
+        [
+          {
+            "node": "IF - Valid Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Valid Request": {
+      "main": [
+        [
+          {
+            "node": "Respond - Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code - State Machine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - State Machine": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Log SMS Debug",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Log SMS Debug": {
+      "main": [
+        [
+          {
+            "node": "Switch - Action Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Action Router": {
+      "main": [
+        [
+          {
+            "node": "Twilio - Send Opt-Out Confirm",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Sheets - Save Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Twilio - Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twilio - Send Opt-Out Confirm": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Save Lead": {
+      "main": [
+        [
+          {
+            "node": "Telegram - Lead Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram - Lead Alert": {
+      "main": [
+        [
+          {
+            "node": "Twilio - Send Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twilio - Send Reply": {
+      "main": [
+        [
+          {
+            "node": "Respond - Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": []
+}
